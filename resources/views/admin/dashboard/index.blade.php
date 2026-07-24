@@ -1,15 +1,9 @@
-@extends('admin.layouts.app')
+<x-admin-layout title="Dashboard">
 
-@section('title', 'Dashboard')
+    <h1>Dashboard</h1>
 
-@section('content')
+    <p>
+        Welcome to Diwakar Enterprise CMS.
+    </p>
 
-<h1>
-    Dashboard
-</h1>
-
-<p>
-    Welcome to Diwakar Enterprise CMS.
-</p>
-
-@endsection
+</x-admin-layout>

@@ -1,13 +1,5 @@
-@extends('frontend.layouts.app')
+<x-frontend-layout title="Home">
 
-@section('title', 'Home')
+    <h1>Welcome</h1>
 
-@section('content')
-
-<h1>
-
-    Welcome
-
-</h1>
-
-@endsection
+</x-frontend-layout>
