@@ -215,6 +215,23 @@ storage/
 tests/
 ```
 
+
+---
+
+# Git Branch Strategy
+
+```text
+main
+│
+develop
+│
+feature/*
+bugfix/*
+hotfix/*
+release/*
+```
+
+
 ---
 
 # Development Principles
