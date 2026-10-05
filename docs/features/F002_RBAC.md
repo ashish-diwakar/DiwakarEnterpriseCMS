@@ -6,7 +6,7 @@ COPY START — docs/features/F002_RBAC.md
 ────────────────────────────────────
 F002 — Roles, Permissions and Super Admin
 Status:
-Planned
+Ready for Final Approval
 1. Objective
 Establish secure role-based access control for Diwakar Enterprise CMS.
 F002 must provide the authorization foundation required by future administrative modules.
@@ -650,7 +650,18 @@ Unless F002 Analysis identifies a compelling reason otherwise, the preferred dir
 This is a preferred direction, not permission to install or implement without the required approval gates.
 60. Implementation Plan
 Status:
-Pending Analysis
+Approved and implemented for review.
+Implemented the approved F002 scope:
+- installed spatie/laravel-permission:^6.0
+- published and inspected package config/migration
+- migrated expected RBAC tables
+- created Super Admin and Admin roles
+- created approved core permissions only
+- protected admin access with auth and can:admin.access
+- disabled public registration routes
+- added minimal user-role and role-permission UI
+- added Super Admin provisioning command
+- added focused RBAC/security tests
 The implementation plan must be created only after targeted repository inspection.
 Normal plan size:
 approximately 3–7 meaningful steps.
@@ -658,67 +669,144 @@ If package installation is recommended:
 the package approval gate occurs before installation.
 61. Implementation Record
 Files Created
-Pending.
+app/Actions/Admin/AssignUserRole.php
+app/Actions/Admin/SuperAdminRoleProtection.php
+app/Actions/Admin/SyncRolePermissions.php
+app/Console/Commands/ProvisionSuperAdmin.php
+app/Http/Controllers/Admin/RolePermissionController.php
+app/Http/Controllers/Admin/UserRoleController.php
+app/Http/Requests/Admin/UpdateRolePermissionsRequest.php
+app/Http/Requests/Admin/UpdateUserRoleRequest.php
+app/Support/Rbac.php
+config/permission.php
+database/migrations/2026_10_05_173023_create_permission_tables.php
+database/seeders/RolesAndPermissionsSeeder.php
+resources/views/admin/roles/index.blade.php
+resources/views/admin/users/index.blade.php
+tests/Feature/Rbac/AdminAccessTest.php
+tests/Feature/Rbac/RoleAssignmentTest.php
+tests/Feature/Rbac/RolePermissionManagementTest.php
+tests/Feature/Rbac/SuperAdminProvisioningCommandTest.php
 Files Modified
-Pending.
+ARCHITECTURE.md
+app/Models/User.php
+app/Providers/AppServiceProvider.php
+bootstrap/app.php
+composer.json
+composer.lock
+docs/features/F002_RBAC.md
+resources/views/admin/dashboard/index.blade.php
+routes/admin.php
+routes/auth.php
+tests/Feature/Admin/DashboardAuthenticationTest.php
+tests/Feature/Auth/RegistrationTest.php
 Files Removed
-Pending.
+None.
 Migrations
-Pending Analysis / Package Approval.
+Added and ran package migration:
+database/migrations/2026_10_05_173023_create_permission_tables.php
+Created expected RBAC tables:
+- roles
+- permissions
+- model_has_roles
+- model_has_permissions
+- role_has_permissions
 Dependencies
 Candidate:
 spatie/laravel-permission
 Approval:
-Pending
+Approved and installed.
+Installed version:
+6.25.0
 Roles Created
-Pending.
+Super Admin
+Admin
 Permissions Created
-Pending.
+admin.access
+users.view
+users.assign_roles
+roles.view
+roles.manage_permissions
 Tests Added / Updated
-Pending.
+Added focused RBAC/security tests.
+Updated admin dashboard and registration tests for F002 behavior.
 62. Validation Record
 Focused Tests
-Pending.
+php artisan test tests/Feature/Rbac tests/Feature/Admin/DashboardAuthenticationTest.php tests/Feature/Auth
+Result:
+37 passed, 77 assertions.
 Regression Suite
-Pending.
+php artisan test
+Result:
+44 passed, 100 assertions.
 Laravel Pint
-Pending.
+.\vendor\bin\pint.bat --test
+Result:
+F002-modified PHP files pass Pint.
+Project-wide Pint still reports the two unrelated pre-existing findings documented below.
 Frontend Build
-Pending / Not applicable.
+npm.cmd run build
+Result:
+Passed.
 Routes
-Pending.
+Implemented admin authorization routes in routes/admin.php.
+Public registration routes removed from routes/auth.php.
 Migration Review
-Pending.
+Completed before migrate.
+The published migration creates only expected RBAC tables and does not destructively modify existing application tables.
+Final validation confirmed:
+- roles, permissions, model_has_roles, model_has_permissions, and role_has_permissions exist
+- users.role does not exist
+- Teams is disabled
+- the default guard remains web
+Role / Permission Baseline
+Final validation confirmed:
+- roles are exactly Super Admin and Admin
+- permissions are exactly admin.access, users.view, users.assign_roles, roles.view, and roles.manage_permissions
+- Admin receives only admin.access, users.view, and roles.view by default
+Composer Security Advisories
+composer audit reported 16 advisories affecting existing packages:
+- guzzlehttp/guzzle 7.15.1
+- laravel/framework v12.64.0
+- league/commonmark 2.8.3
+- league/flysystem 3.35.2
+The approved F002 dependency spatie/laravel-permission 6.25.0 is not reported as affected.
 Security Review
-Pending.
+Final validation security review complete:
+- admin routes require auth and can:admin.access
+- Super Admin bypass is centralized in Gate::before
+- Super Admin role mutation is protected
+- last Super Admin cannot be demoted
+- Super Admin permissions cannot be edited through normal role-permission UI
+- direct user permissions are not exposed through CMS workflows
+- public registration is disabled
 Final Diff Review
-Pending.
+Completed.
+Changes remain scoped to F002.
+No secrets, credentials, debug code, temporary security bypasses, unapproved roles, unapproved permissions, or unexpected generated frontend artifacts were identified.
 63. Known Limitations
-Before implementation:
-- final RBAC package decision pending
-- final role model pending Analysis
-- Super Admin implementation strategy pending
-- provisioning strategy pending
-- public registration remains available until F002 implementation is approved and completed
-Additional limitations:
-Pending.
+Known project issues preserved after F002 completion:
+Pre-existing unrelated Pint findings remain outside F002 unless separately approved:
+- app/View/Components/FrontendLayout.php
+- routes/frontend.php
+Composer audit reports unrelated existing advisories affecting guzzlehttp/guzzle, laravel/framework, league/commonmark, and league/flysystem.
 64. Completion Record
 Implementation:
-Pending
+Complete
 Acceptance Criteria:
-Pending
+12/12 satisfied
 Focused Testing:
-Pending
+Completed
 User Code Review:
-Pending
+Approved
 Final Validation:
-Pending
+Passed
 User Review:
-Pending
+Approved
 Final User Approval:
-Pending
+Approved
 Feature Status:
-Planned
+Complete
 65. Required Workflow
 F002 must follow:
 Feature Specification

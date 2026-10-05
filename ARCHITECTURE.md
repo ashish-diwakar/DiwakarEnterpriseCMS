@@ -597,24 +597,31 @@ Do not replace Breeze with another authentication system without explicit archit
 Authentication UI may be integrated into the CMS layout.
 Authentication backend behavior should remain compatible with standard Laravel conventions unless an approved requirement changes it.
 63. RBAC Architecture
-Role-based access control is planned but not yet fully defined by this architecture document.
-The RBAC feature will define:
-- package approval
-- roles
-- permissions
-- middleware
-- policies
-- Super Admin behavior
-- initial administrative user provisioning
-Do not invent RBAC behavior in unrelated features.
+Role-based access control uses Spatie Laravel Permission with the existing Laravel web guard.
+The CMS product model is one primary role per user, enforced through role synchronization rather than a users.role column.
+Permissions use lowercase dot notation such as:
+admin.access
+users.view
+users.assign_roles
+roles.view
+roles.manage_permissions
+Application authorization should use Laravel-native permission checks such as:
+can()
+@can
+can:permission
+Do not scatter role-name checks through controllers, routes, or Blade templates.
+Do not assign direct user permissions as part of normal CMS workflows.
 64. Super Admin
-A Super Admin concept is planned.
-Do not assume Super Admin automatically bypasses all authorization checks until the RBAC feature explicitly defines that behavior.
-Security-sensitive bypass behavior requires explicit design and tests.
+Super Admin receives full permission-based access through a centralized Laravel Gate::before bypass.
+The Super Admin role is protected:
+- only a Super Admin may assign or remove it
+- the last Super Admin may not be demoted
+- normal role-permission management may not edit Super Admin permissions
+Initial Super Admin provisioning uses the dedicated Artisan command rather than hard-coded credentials or public registration.
 65. Public Registration
-Public registration is temporary during early authentication development.
-The RBAC/admin provisioning feature should define its final behavior.
-Do not treat public CMS registration as a permanent product requirement.
+Public registration is disabled after RBAC implementation.
+Login, logout, password reset, password confirmation, email verification, and existing users remain preserved.
+Administrative account provisioning must use the approved controlled mechanism.
 66. Admin Architecture
 Administrative functionality should use a consistent structure.
 Potential modules include:
