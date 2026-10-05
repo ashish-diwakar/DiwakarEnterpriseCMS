@@ -315,6 +315,32 @@ The CMS architecture is intentionally generic so future projects can be created 
 
 ---
 
+# First time Install & development run
+
+npm install
+
+npm run dev
+
+# Then Run the Application in another terminal
+
+php artisan serve
+
+# Then Visit:
+http://127.0.0.1:8000
+
+
+# Going Forward
+# For development, I recommend having two terminals open:
+# Terminal 1
+php artisan serve
+
+# Terminal 2
+npm run dev
+
+# This is the standard Laravel workflow.
+
+---
+
 # License
 
 This project is proprietary software developed by **Diwakar Software Solutions**.
