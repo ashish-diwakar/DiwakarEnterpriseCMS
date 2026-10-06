@@ -1,25 +1,28 @@
 <x-admin-layout title="Dashboard"
-                description="Welcome to the CMS administration area.">
-    <section class="rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
-        <h2 class="text-base font-semibold text-slate-950">Administration</h2>
-        <p class="mt-2 text-sm text-slate-600">
-            Use the navigation to manage currently available CMS administration areas.
-        </p>
+                description="Overview of the currently available CMS administration areas.">
+    <div class="space-y-6">
+        <section class="rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
+            <h2 class="text-base font-semibold text-slate-950">CMS overview</h2>
+            <p class="mt-2 max-w-3xl text-sm text-slate-600">
+                Review the administration areas currently available to your account.
+            </p>
+        </section>
 
-        <div class="mt-5 flex flex-wrap gap-3">
-            @can('users.view')
-                <a href="{{ route('admin.users.index') }}"
-                   class="rounded-md bg-slate-950 px-4 py-2 text-sm font-medium text-white hover:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-slate-500 focus:ring-offset-2">
-                    Manage Users
-                </a>
-            @endcan
+        @if ($summaryCards !== [])
+            <section aria-labelledby="dashboard-summary-heading">
+                <h2 id="dashboard-summary-heading" class="sr-only">Dashboard summary</h2>
 
-            @can('roles.view')
-                <a href="{{ route('admin.roles.index') }}"
-                   class="rounded-md border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-slate-500 focus:ring-offset-2">
-                    Manage Roles
-                </a>
-            @endcan
-        </div>
-    </section>
+                <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+                    @foreach ($summaryCards as $card)
+                        <x-admin.dashboard-stat-card :label="$card['label']"
+                                                     :value="$card['value']"
+                                                     :description="$card['description']"
+                                                     :href="$card['href']"
+                                                     :action-label="$card['actionLabel']" />
+                    @endforeach
+                </div>
+            </section>
+        @endif
+
+    </div>
 </x-admin-layout>

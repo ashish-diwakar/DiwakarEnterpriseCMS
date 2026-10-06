@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\RolePermissionController;
 use App\Http\Controllers\Admin\UserRoleController;
 use Illuminate\Support\Facades\Route;
@@ -9,9 +10,8 @@ use Illuminate\Support\Facades\Route;
 Route::middleware(['auth', 'can:admin.access'])->group(function (): void {
     Route::redirect('/', '/admin/dashboard');
 
-    Route::get('/dashboard', function () {
-        return view('admin.dashboard.index');
-    })->name('dashboard');
+    Route::get('/dashboard', DashboardController::class)
+        ->name('dashboard');
 
     Route::get('/users', [UserRoleController::class, 'index'])
         ->middleware('can:users.view')
