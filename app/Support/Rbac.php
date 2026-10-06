@@ -20,6 +20,8 @@ final class Rbac
 
     public const PERMISSION_ROLES_MANAGE_PERMISSIONS = 'roles.manage_permissions';
 
+    public const PERMISSION_SETTINGS_MANAGE = 'settings.manage';
+
     /**
      * @return list<string>
      */
@@ -31,6 +33,7 @@ final class Rbac
             self::PERMISSION_USERS_ASSIGN_ROLES,
             self::PERMISSION_ROLES_VIEW,
             self::PERMISSION_ROLES_MANAGE_PERMISSIONS,
+            self::PERMISSION_SETTINGS_MANAGE,
         ];
     }
 

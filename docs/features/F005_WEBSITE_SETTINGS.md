@@ -6,7 +6,7 @@ COPY START — docs/features/F005_WEBSITE_SETTINGS.md
 ────────────────────────────────────
 F005 — Website Settings
 Status:
-Planned
+Complete
 1. Objective
 Introduce reusable CMS-managed website settings for site-level configuration.
 F005 should allow authorized administrators to manage common public website information without hard-coding business-specific values into frontend templates.
@@ -599,49 +599,70 @@ Before implementation, the user should approve:
 Any new package requires separate approval.
 57. Implementation Plan
 Status:
-Pending Analysis
+Complete
 Expected implementation plan size:
 approximately 5–7 meaningful steps.
 Do not implement until approved.
 58. Implementation Record
 Files Created
-Pending.
+- database/migrations/2026_10_06_000001_create_website_settings_table.php
+- app/Models/WebsiteSetting.php
+- app/Http/Controllers/Admin/WebsiteSettingsController.php
+- app/Http/Requests/Admin/UpdateWebsiteSettingsRequest.php
+- resources/views/admin/settings/edit.blade.php
+- tests/Feature/Admin/WebsiteSettingsTest.php
 Files Modified
-Pending.
+- app/Support/Rbac.php
+- database/seeders/RolesAndPermissionsSeeder.php
+- routes/admin.php
+- resources/views/admin/layouts/partials/sidebar.blade.php
+- tests/Feature/Admin/DashboardTest.php
+- tests/Feature/Rbac/AdminAccessTest.php
+- docs/features/F005_WEBSITE_SETTINGS.md
 Files Removed
-Pending.
+None.
 Migration
-Pending.
+- Created website_settings singleton table for approved Website Settings fields.
 Model
-Pending.
+- Created WebsiteSetting model with SINGLETON_ID and singleton finder.
 Permission
-Pending.
+- Added settings.manage permission. Default Admin role does not receive it automatically.
 Dependency Changes
 Expected:
 None
 Final:
-Pending.
+None.
 Tests Added / Updated
-Pending.
+- Added focused Website Settings feature coverage.
+- Updated dashboard permission-count expectation for the new web-guard permission.
+- Updated RBAC default-permission coverage and seeder preservation coverage.
 59. Validation Record
 Focused Tests
-Pending.
+- php artisan test --filter=WebsiteSettingsTest
+  Result: 12 passed, 61 assertions.
+- php artisan test tests/Feature/Admin/WebsiteSettingsTest.php tests/Feature/Admin/DashboardTest.php tests/Feature/Admin/AdminShellTest.php tests/Feature/Rbac/AdminAccessTest.php tests/Feature/Rbac/RolePermissionManagementTest.php
+  Previous result: 37 passed, 148 assertions.
 Regression Suite
-Pending.
+- php artisan test
+  Result: 73 passed, 242 assertions.
 Laravel Pint
-Pending.
+- .\vendor\bin\pint.bat --test
+  Result: Failed only for known unrelated files app\View\Components\FrontendLayout.php and routes\frontend.php.
+- .\vendor\bin\pint.bat --test app/Models/WebsiteSetting.php app/Http/Controllers/Admin/WebsiteSettingsController.php app/Http/Requests/Admin/UpdateWebsiteSettingsRequest.php app/Support/Rbac.php database/seeders/RolesAndPermissionsSeeder.php database/migrations/2026_10_06_000001_create_website_settings_table.php tests/Feature/Admin/WebsiteSettingsTest.php tests/Feature/Admin/DashboardTest.php tests/Feature/Rbac/AdminAccessTest.php routes/admin.php
+  Result: Passed for F005 PHP files.
 Frontend Build
-Pending.
+- npm.cmd run build
+  Result: Passed.
 Migration Review
-Pending.
+Passed: migration creates only the approved website_settings table and approved fields, is non-destructive, has no unnecessary indexes, and contains no logo/favicon or SEO columns.
 Authorization Review
-Pending.
+Passed: settings routes require auth, admin.access, and settings.manage; Super Admin continues through Gate::before.
 Security Review
-Pending.
+Passed: validation is server-side, persistence uses validated fields only, unsafe URLs and unapproved fields are rejected, footer text is escaped, and no secrets/media/SEO fields were added.
 Manual UI Review
-Pending.
+Passed — confirmed by user.
 Final Diff Review
-Pending.
+Passed: changes remain scoped to F005; no debugging code, temporary routes, secrets, dependency changes, generated build artifacts, F006 implementation, F010 implementation, or frontend/theme integration found.
 60. Known Limitations
 Expected F005 limitation:
 logo/favicon media selection may remain deferred until:
@@ -650,70 +671,72 @@ SEO-specific settings remain deferred until:
 F010 — SEO Management
 Frontend/theme-specific presentation remains deferred to later frontend/theme features.
 Additional limitations:
-Pending implementation.
+- Logo and favicon media selection remain deferred until F006 Media Library.
+- SEO-specific settings remain deferred until F010 SEO Management.
+- Frontend/theme-specific settings consumption remains deferred to later frontend/theme features.
 61. Completion Record
 Implementation:
-Pending
+Complete
 Acceptance Criteria:
-Pending
+38/38 satisfied
 Focused Testing:
-Pending
-User Code Review:
-Pending
+Passed
+User Review:
+Approved
 Manual UI Review:
-Pending
+Passed — confirmed by user
 Final Validation:
-Pending
+Passed
 Final User Approval:
-Pending
+Approved
 Feature Status:
-Planned
+Complete
 62. Acceptance Criteria
 Persistence
-- [ ] Website Settings use one approved reusable persistence model.
-- [ ] Settings can be created safely on a fresh installation.
-- [ ] Updating settings does not create uncontrolled duplicate configuration records.
-- [ ] No generic arbitrary setting-key system is introduced unless explicitly approved.
+- [x] Website Settings use one approved reusable persistence model.
+- [x] Settings can be created safely on a fresh installation.
+- [x] Updating settings does not create uncontrolled duplicate configuration records.
+- [x] No generic arbitrary setting-key system is introduced unless explicitly approved.
 Authorization
-- [ ] Settings administration requires authentication.
-- [ ] Settings administration requires approved authorization.
-- [ ] Unauthorized authenticated users receive 403.
-- [ ] Super Admin retains access through centralized Gate bypass.
-- [ ] Settings sidebar visibility follows authorization.
+- [x] Settings administration requires authentication.
+- [x] Settings administration requires approved authorization.
+- [x] Unauthorized authenticated users receive 403.
+- [x] Super Admin retains access through centralized Gate bypass.
+- [x] Settings sidebar visibility follows authorization.
 Form / Validation
-- [ ] Settings form displays approved fields only.
-- [ ] Valid settings persist.
-- [ ] Invalid email is rejected where applicable.
-- [ ] Invalid URLs are rejected.
-- [ ] Server-side validation is used.
-- [ ] Arbitrary request fields cannot update sensitive/unapproved values.
+- [x] Settings form displays approved fields only.
+- [x] Valid settings persist.
+- [x] Invalid email is rejected where applicable.
+- [x] Invalid URLs are rejected.
+- [x] Server-side validation is used.
+- [x] Arbitrary request fields cannot update sensitive/unapproved values.
 Security
-- [ ] Website Settings contain no infrastructure secrets.
-- [ ] No environment variables are exposed.
-- [ ] Dynamic values use escaped output.
-- [ ] No raw arbitrary HTML is introduced.
-- [ ] No unsafe external URL handling is introduced.
+- [x] Website Settings contain no infrastructure secrets.
+- [x] No environment variables are exposed.
+- [x] Dynamic values use escaped output.
+- [x] No raw arbitrary HTML is introduced.
+- [x] No unsafe external URL handling is introduced.
 Architecture
-- [ ] No unnecessary repository layer is introduced.
-- [ ] No generic settings engine is introduced without need.
-- [ ] No new package is introduced without approval.
-- [ ] No media-upload subsystem is duplicated before F006.
-- [ ] No SEO architecture is introduced before F010.
-- [ ] Website Settings remain business-neutral.
+- [x] No unnecessary repository layer is introduced.
+- [x] No generic settings engine is introduced without need.
+- [x] No new package is introduced without approval.
+- [x] No media-upload subsystem is duplicated before F006.
+- [x] No SEO architecture is introduced before F010.
+- [x] Website Settings remain business-neutral.
 Admin UI
-- [ ] Settings page uses the F003 admin shell.
-- [ ] Settings navigation appears only when authorized.
-- [ ] Form is responsive.
-- [ ] Save feedback is clear.
-- [ ] Existing values remain visible after save/reload.
+- [x] Settings page uses the F003 admin shell.
+- [x] Settings navigation appears only when authorized.
+- [x] Form is responsive.
+- [x] Save feedback is clear.
+- [x] Existing values remain visible after save/reload.
 Quality
-- [ ] Focused F005 tests pass.
-- [ ] Migration is reviewed.
-- [ ] F005-modified PHP files pass Pint.
-- [ ] Frontend build passes when applicable.
-- [ ] Manual UI review passes.
-- [ ] Full regression suite passes during final validation.
-- [ ] Final diff remains scoped to F005.
+- [x] Focused F005 tests pass.
+- [x] Migration is reviewed.
+- [x] F005-modified PHP files pass Pint.
+- [x] Frontend build passes when applicable.
+- [x] Manual UI review passes.
+- [x] Full regression suite passes during final validation.
+- [x] Final diff remains scoped to F005.
 63. Required Workflow
 F005 must follow:
 Feature Specification

@@ -161,7 +161,7 @@ class DashboardTest extends TestCase
         $response->assertOk();
         $response->assertSeeInOrder([
             'Permissions',
-            '6',
+            '7',
             'Configured CMS permissions for the web guard.',
         ]);
     }

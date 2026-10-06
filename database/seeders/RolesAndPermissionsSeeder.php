@@ -21,7 +21,7 @@ class RolesAndPermissionsSeeder extends Seeder
         Role::findOrCreate(Rbac::ROLE_SUPER_ADMIN, Rbac::GUARD_WEB);
 
         Role::findOrCreate(Rbac::ROLE_ADMIN, Rbac::GUARD_WEB)
-            ->syncPermissions(Rbac::adminPermissions());
+            ->givePermissionTo(Rbac::adminPermissions());
 
         app(PermissionRegistrar::class)->forgetCachedPermissions();
     }

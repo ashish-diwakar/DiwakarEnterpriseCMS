@@ -51,6 +51,14 @@
                         Roles
                     </x-admin.sidebar-link>
                 @endcan
+
+                @can('settings.manage')
+                    <x-admin.sidebar-link :href="route('admin.settings.edit')"
+                                          :active="request()->routeIs('admin.settings.*')"
+                                          x-on:click="sidebarOpen = false">
+                        Settings
+                    </x-admin.sidebar-link>
+                @endcan
             </div>
         </div>
     </nav>
