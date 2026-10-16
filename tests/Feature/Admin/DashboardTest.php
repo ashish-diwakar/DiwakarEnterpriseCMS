@@ -161,7 +161,7 @@ class DashboardTest extends TestCase
         $response->assertOk();
         $response->assertSeeInOrder([
             'Permissions',
-            '7',
+            (string) (count(Rbac::permissions()) + 1),
             'Configured CMS permissions for the web guard.',
         ]);
     }

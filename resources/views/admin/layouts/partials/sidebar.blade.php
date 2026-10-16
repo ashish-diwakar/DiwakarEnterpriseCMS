@@ -59,6 +59,14 @@
                         Settings
                     </x-admin.sidebar-link>
                 @endcan
+
+                @can('media.manage')
+                    <x-admin.sidebar-link :href="route('admin.media.index')"
+                                          :active="request()->routeIs('admin.media.*')"
+                                          x-on:click="sidebarOpen = false">
+                        Media Library
+                    </x-admin.sidebar-link>
+                @endcan
             </div>
         </div>
     </nav>

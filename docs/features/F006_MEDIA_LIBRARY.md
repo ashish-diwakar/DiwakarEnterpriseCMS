@@ -1,6 +1,80 @@
 F006 — Media Library
 Status:
-Planned
+Complete
+
+Final approval — 2026-10-17
+User granted final approval, including the final presentation corrections. F006 is Complete. Historical review-stage entries below are retained as development history; this approval and the completion record supersede their pending statuses. Documented limitations and known unrelated Pint findings/Composer advisories remain unchanged. No validation commands, application/data/storage changes or Git operations were performed for this completion update.
+
+Display Name action styling — 2026-10-16
+- Added generous top/side/bottom spacing around the editor actions, a dark primary Save button and a muted secondary Cancel button. Cancel discards the unsaved draft/errors and closes the section without a request; both actions are disabled while saving. Status remains Ready for Review pending user verification.
+
+Additional card-spacing correction — 2026-10-16
+- Reopened user review after final validation for a presentation-only refinement: a compact minimum metadata height keeps untitled/PDF cards aligned with titled image cards, and a reserved success-feedback line avoids a height jump after saving. Metadata can still grow for long names.
+- Display Name Save now has a separated action row with deliberate top margin/padding and wider button padding. Backend, asynchronous behavior, previews and storage are unchanged.
+- Previous final-validation results remain recorded below; this correction requires renewed user UI approval. Feature is not Complete.
+
+Display Name completion correction — 2026-10-16
+- The existing asynchronous editor now collapses its native details section only after a successful response updates the heading/draft and success feedback. This also applies when clearing the title. Error paths retain the open editor and entered value. No navigation, explicit scrolling, backend, storage or dependency changes.
+- JavaScript assets rebuilt for manual review. No backend/view change required; focused PHP tests were not rerun. Status remains Ready for Review; user verification pending.
+
+Inline Display Name save correction — 2026-10-16
+- Display Name uses the existing Alpine installation plus native fetch to submit PATCH admin.media.update with JSON content negotiation and the form's existing CSRF token. No new endpoint or dependency was added.
+- The existing UpdateMediaRequest, media.manage checks and title-only persistence remain authoritative. JSON success returns title and display_name; ordinary form submissions retain the existing redirect. Laravel returns normal JSON validation errors for asynchronous requests.
+- Successful saves update the card heading and editor value using text binding, without navigation/reload or explicit scrolling. Clearing title shows original_name. The editor remains open, with inline success feedback. Validation, authorization/session and unexpected failures retain the draft and show safe inline errors; duplicate saves are disabled while pending.
+- Disk/path/public URL, immutable original_name, preview/upload/search/filter/delete behavior and schema remain unchanged.
+- Focused command: php artisan test --compact tests/Feature/Admin/MediaLibraryTest.php — 19 passed, 311 assertions. Existing update tests retained; JSON success/clear/error/authorization/storage-identity and escaped rendering coverage added. Browser interaction remains for user manual review; no browser E2E infrastructure introduced.
+- npm run build compiled the JavaScript correction successfully for review. No full regression or final validation performed. Status remains Ready for Review.
+
+Preview-height review correction — 2026-10-16
+- All image and PDF cards now share one fixed 12rem (192px) preview wrapper, independent of file aspect ratio. Images fill that region using object-contain; PDF content remains centered. Explicit presentation sizing avoids relying on a newly compiled utility class.
+- Cards align to the start of each grid row rather than stretching shorter cards with excess blank space. Metadata, controls, runtime URLs and processing behavior remain unchanged.
+- Focused command: php artisan test --compact tests/Feature/Admin/MediaLibraryTest.php — 18 passed, 288 assertions. No other tests, build or final validation run for this correction; hard-refresh/manual grid review remains pending.
+
+Preview URL diagnosis/correction — 2026-10-16
+- Existing JPEG id 1 uses disk public and relative path media/2026/10/4XiutJ2sxP4NIzuxBpinKQBWL244b0FSciITf4f2.jpg; the physical file exists. After storage-link setup, its generated http://localhost/storage/... URL returned 404, while the identical path on the running Laravel origin http://127.0.0.1:8000 returned 200 image/jpeg. Open asset therefore also targeted the wrong server.
+- Media::url() now returns the path component of Laravel Storage's generated URL for the local public disk, so both image previews and Open asset use /storage/... on the active origin/port. Other disks retain their generated URL behavior. No .env/filesystem configuration, stored path, file or schema changes.
+- Existing approved MIME branches, constrained preview region/fallback, PDF representation, title behavior and upload behavior are unchanged.
+- Focused command: php artisan test --compact tests/Feature/Admin/MediaLibraryTest.php — 18 passed, 285 assertions. Includes origin mismatch regression coverage and existing preview/title/escaping tests.
+- Status remains Ready for Review. Hard-refresh/manual review is pending; no full regression or final validation performed.
+
+Image-preview review correction — 2026-10-16
+- Approved JPEG/PNG/WebP cards render the original runtime Media URL inside a fixed-height, overflow-constrained region using object-contain and lazy loading. Existing Alpine handles a simple image-load failure message without changing card height.
+- PDF cards use the same-height neutral region with an inline document icon and PDF label; no PDF image/thumbnail is generated.
+- Display Name editing, stored paths/URLs, metadata, upload limits and responsive grid remain unchanged. No processing package or alternate asset version was added.
+- Focused command: php artisan test --compact tests/Feature/Admin/MediaLibraryTest.php — 17 passed, 279 assertions. Coverage includes runtime preview URLs for all approved image MIME types, PDF exclusion, escaped names, and unchanged preview URLs after title changes.
+- Tailwind assets compiled for review. public/storage was inspected and remains absent; this prevents normal local public-disk serving until separately approved setup. No storage link was created. Manual UI review and final validation remain pending; status remains Ready for Review.
+
+Approved review corrections — 2026-10-16 (supersedes the initial decisions below)
+- Status remains Ready for Review; user manual UI approval and final validation are pending.
+- Standard multiple-file upload accepts 1–10 files per request. The complete array is validated before processing, retaining independent image (5 MiB) and PDF (10 MiB) limits and all existing format/security rules. PHP/web-server total request limits still apply; configuration is unchanged.
+- The controller invokes StoreMedia for each validated file. A later operational failure stops processing, reports the number already uploaded safely, and retains earlier successful files. The failing operation retains its cleanup guarantees.
+- Added nullable string title (maximum 255) through 2026_10_16_000002_add_title_to_media_table; the previously executed create migration is unchanged. The focused follow-up migration was applied locally.
+- PATCH admin.media.update uses UpdateMediaRequest and the existing media.manage authorization to change title only. Original upload name, generated physical filename, disk/path, public URL and other storage metadata are unchanged by display-name updates.
+- Cards display title when present, otherwise original_name; original filename remains secondary metadata when a title exists. Compact native details/forms allow editing or clearing Display name. Untrusted titles are validated and escaped, without HTML rewriting.
+- Search now matches title OR original_name in a grouped parameterized query, retaining type filtering and pagination.
+- UI correction: matching primary Upload/Apply buttons, outlined Open asset, low-emphasis Reset, destructive Delete, styled multiple-file chooser, and an aligned responsive search/filter toolbar. Existing deletion confirmation remains.
+- Focused tests: php artisan test --compact tests/Feature/Admin/MediaLibraryTest.php tests/Feature/Rbac — 32 passed, 311 assertions, using fake storage/in-memory test data. Includes mixed batches, 10-file bound, all-before-storage validation, partial operational failure, immutable storage metadata, title validation/escaping/search and existing authorization/deletion/cleanup coverage.
+- Scoped PHP formatting applied. npm run build compiled the corrected Tailwind assets successfully for manual review; no full regression or final validation performed. Manual UI review has not been claimed as passed.
+- No new dependency, permission, default Admin grant, Website Settings integration, media picker or future-module work. No storage-link command was run during these corrections.
+
+Initial implementation record — 2026-10-16
+- Approved implementation uses Laravel-native public-disk storage and Media/table media; no dependency changes.
+- Schema: id, original_name, disk, path, mime_type, size, nullable width/height, timestamps; ordering index on created_at/id.
+- Uploads: one JPEG/PNG/WebP (5 MiB maximum) or PDF (10 MiB maximum) per request. GIF, SVG, scripts and other formats are rejected. Content-aware validation, extension agreement and native image dimensions are enforced.
+- Storage: media/YYYY/MM/{hashName}; server-owned metadata; runtime Storage URL generation; no persisted absolute URLs.
+- StoreMedia and DeleteMedia coordinate storage/persistence, surface safe failures and report operational errors. Failed persistence attempts upload cleanup. Failed file deletion retains the record; an already-missing file permits metadata cleanup. Database deletion failure after file removal leaves a record that can be retried.
+- Routes: admin.media.index (GET), admin.media.store (POST), admin.media.destroy (DELETE), requiring auth/admin.access/media.manage. Central Super Admin Gate bypass is unchanged.
+- media.manage registered through the existing additive seeder. Admin default permissions and the seeder implementation remain unchanged.
+- Responsive index provides upload, original-image previews, PDF cards, metadata, public links, explicit delete confirmation, original-name search, All/Images/Documents filtering, newest-first deterministic ordering and 24-item server pagination.
+- No title/alt_text, transformations, folders, soft deletes, picker, Website Settings changes or future-module relationships.
+- Focused command: php artisan test --compact tests/Feature/Admin/MediaLibraryTest.php tests/Feature/Rbac — 27 passed, 218 assertions. Initial sandbox execution was blocked by PHP file readability; successful focused execution used approved escalation. One MIME-mismatch fake fixture was corrected before the successful run; a real UploadedFile spoofing test also passes.
+- Scoped Pint formatting applied only to F006 PHP files. No full regression, frontend build, manual UI review or final validation performed.
+- Approved local create_media_table migration and additive RolesAndPermissionsSeeder executed successfully.
+- public/storage remains absent; storage:link was not run. Public-preview/manual review requires separate approval/setup.
+- Limitations: public assets only; no malware/PDF sanitization pipeline. No filesystem/database atomic transaction; cleanup is best effort. Original-image previews download original files. Later consuming features must add reference protection before referenced media can safely be deleted, normally using an appropriately named nullable foreign key to media.id for a single asset.
+- Known unrelated Pint findings and Composer advisories remain outside this implementation.
+- Pending: user code review, separately approved storage-link setup/manual UI review, final validation, and final completion approval. F006 is not Complete.
+
 1. Objective
 Add reusable CMS media management for uploading, browsing, organizing, selecting, and safely deleting website assets such as images and documents.
 The Media Library should provide a reusable asset foundation for later CMS features without becoming a full Digital Asset Management system.
@@ -826,148 +900,152 @@ Before implementation, the user should approve:
 - Website Settings logo/favicon integration decision
 - any new package
 84. Implementation Plan
-Status:
-Pending Analysis
-Expected implementation plan size:
-approximately 6–8 meaningful steps.
-Do not implement until approved.
+Approved and implemented, including the separately approved multi-file upload, Display Name, preview and asynchronous-save refinements recorded above.
 85. Implementation Record
 Files Created
-Pending.
+- app/Models/Media.php
+- app/Actions/Media/StoreMedia.php
+- app/Actions/Media/DeleteMedia.php
+- app/Http/Controllers/Admin/MediaController.php
+- app/Http/Requests/Admin/StoreMediaRequest.php
+- app/Http/Requests/Admin/UpdateMediaRequest.php
+- database/migrations/2026_10_16_000001_create_media_table.php
+- database/migrations/2026_10_16_000002_add_title_to_media_table.php
+- resources/views/admin/media/index.blade.php
+- resources/js/media-display-name.js
+- tests/Feature/Admin/MediaLibraryTest.php
 Files Modified
-Pending.
+- app/Support/Rbac.php
+- routes/admin.php
+- resources/views/admin/layouts/partials/sidebar.blade.php
+- resources/js/app.js
+- tests/Feature/Rbac/AdminAccessTest.php
+- tests/Feature/Admin/DashboardTest.php
+- docs/features/F006_MEDIA_LIBRARY.md
 Files Removed
-Pending.
-Migration
-Pending.
-Model
-Pending.
+None.
+Migration / Model
+Media/table media; initial create migration preserved, nullable title added through a separate follow-up. Both applied locally before final validation. Read-only schema verification confirmed id, original_name, title, disk, path, mime_type, size, nullable width/height and timestamps only; primary key plus created_at/id index; no foreign keys.
 Storage
-Pending.
+Laravel public disk, server-generated media/YYYY/MM/hashName paths, runtime URLs. Local public URLs are root-relative to retain the active serving origin/port; non-local disks retain Storage URL generation. Standard php artisan storage:link created public/storage pointing to storage/app/public. No configuration changes or custom link workaround.
 Permission
-Pending.
+media.manage only; admin.access also required. Admin defaults and additive seeder implementation unchanged; Super Admin Gate bypass retained.
 Dependency Changes
-Expected:
-None
-Final:
-Pending.
+None. Composer/npm manifests and lockfiles unchanged.
 Tests Added / Updated
-Pending.
-86. Validation Record
+MediaLibraryTest covers authorization/navigation, types/limits/batches, storage metadata/dimensions/security, browsing, Display Name/JSON update/escaping, deletion and cleanup failures. AdminAccessTest covers permission defaults/idempotency/custom grants. DashboardTest's stale fixed count was replaced by the configured permission count plus its one custom web-permission fixture; dashboard application code unchanged.
+86. Validation Record — 2026-10-16
+Full Regression Suite
+php artisan test — 92 passed, 556 assertions. Initial run: 1 failed/91 passed because the dashboard test still expected the old permission count. Corrected the expectation only; affected tests and complete suite then passed.
 Focused Tests
-Pending.
-Regression Suite
-Pending.
+php artisan test --compact tests/Feature/Admin/MediaLibraryTest.php tests/Feature/Rbac — 35 passed, 355 assertions.
+Affected Tests After Correction
+php artisan test --compact tests/Feature/Admin/MediaLibraryTest.php tests/Feature/Rbac tests/Feature/Admin/DashboardTest.php — 46 passed, 409 assertions.
 Laravel Pint
-Pending.
+Project-wide php vendor/bin/pint --test reports only known unrelated findings in app/View/Components/FrontendLayout.php and routes/frontend.php. All 13 F006-created/modified PHP files pass explicit scoped --test, including both migrations and the dashboard test. Known unrelated files left unchanged.
 Frontend Build
-Pending.
-Migration Review
-Pending.
-Storage Review
-Pending.
-Authorization Review
-Pending.
-Upload Security Review
-Pending.
+npm.cmd run build — passed. No dependency update. Generated public/build assets remain ignored/local.
+Routes
+Exactly index/store/update/destroy under /admin/media, named admin.media.*, each protected by web/auth/can:admin.access/can:media.manage; verified with filtered route:list -vv.
+Migration / Database Review
+Passed by source review, prior forward execution, isolated test migrations and read-only local schema inspection. No destructive migration or data edits performed during final validation. Rollback definitions reviewed; rollback was not executed against the development database.
+Storage / Security Review
+Passed: approved MIME/extension agreement and native image validation/dimensions; 1–10 files fully validated before normal processing; individual 5 MiB image/10 MiB PDF limits; generated destination and trusted metadata; request cannot select persistence attributes; escaped Blade/x-text output; CSRF and server authorization preserved. No SVG/GIF/executable/HTML/JS or other arbitrary formats allowed. File storage/persistence coordination remains in focused Actions; failure feedback is safe and cleanup failures are reported.
+Display Name / JavaScript Review
+Passed: title-only updates through existing PATCH/Form Request; original_name/path/disk/URL unchanged. JSON content negotiation retains ordinary form redirects. Alpine/native fetch uses existing CSRF token and text binding, updates heading, collapses only after success, and keeps errors/drafts inline on failure. No added frontend dependency or broader AJAX operations.
+Browsing / Preview / Deletion Review
+Passed: title/original-name grouped parameterized search, All/Images/Documents filters, created_at DESC/id DESC and 24-item pagination with filter preservation. Original-image previews and PDF representation share fixed 12rem region; no transformation files. Authorized permanent deletion uses stored disk/path, retains metadata on file-removal failure, allows already-missing-file cleanup and reports DB failure after removal; explicit confirmation retained.
+RBAC / Scope Review
+Passed: media.manage registration remains additive/idempotent; customized Admin grants survive; no default media grant or explicit Super Admin checks. Permission-aware navigation extends F003 only. F004 application and F005 Website Settings unchanged. No picker, logo/favicon integration, future-module relationships, folders/tags, cloud/private storage, transformations or F007 work.
 Manual UI Review
-Pending.
+Passed — confirmed by user
+Desktop/mobile/narrow layout, overflow, responsive grid, image previews/PDF representation, consistent preview heights, public serving/Open asset, multiple upload, search/filter, Display Name persistence/clearing, no-refresh save/auto-collapse, immutable physical identity and deletion UI/confirmation all confirmed by user. Browser validation was not repeated during final validation.
 Final Diff Review
-Pending.
+Passed: all tracked/untracked feature files reviewed; no unrelated changes, debug code, temporary routes, secrets or unexplained TODOs found. No test media/build artifacts added to the change set. Initial user-prepared F006 specification preserved and updated only for the approved workflow. Local media/link/build output are ignored; no remote/Git mutations performed.
 87. Known Limitations
-Expected initial limitations may include:
-- no advanced image editing
-- no automatic transformations
-- no external cloud/CDN storage
-- no folders/tags unless analysis justifies them
-- no media usage/reference tracking until consuming modules exist
-- no private media/document-management system
-- no activity logging until F019
-- logo/favicon selection may remain deferred unless explicitly included in F006
-Final limitations:
-Pending implementation.
+- Filesystem/database operations are not atomic; cleanup is best effort. A later batch failure retains earlier successful uploads; a DB deletion failure after file removal can leave metadata for retry.
+- Future consuming modules must add reference protection before referenced assets can safely be deleted.
+- Original-image previews only; no thumbnails or transformations.
+- Media picker and Website Settings logo/favicon integration remain deferred.
+- Public assets only; no private-document management, malware scanning or PDF sanitization pipeline.
+- PHP/web-server overall request limits still apply to batches; configuration unchanged.
+- Known unrelated project-wide Pint findings and previously documented Composer advisories remain outside F006.
 88. Completion Record
-Implementation:
-Pending
-Acceptance Criteria:
-Pending
-Focused Testing:
-Pending
-User Code Review:
-Pending
-Manual UI Review:
-Pending
-Final Validation:
-Pending
-Final User Approval:
-Pending
-Feature Status:
-Planned
+Implementation: Complete
+Acceptance Criteria: 55/55 satisfied
+Focused Testing: Passed
+User Code Review: approved by user.
+User Review: Approved
+Manual UI Review: Passed — confirmed by user
+Final Validation: Passed
+Project-wide Pint retains only the two documented unrelated findings; previously documented Composer advisories remain outside F006.
+Final User Approval: Approved
+Feature Status: Complete
 89. Acceptance Criteria
 Persistence
-- [ ] Approved Media model/table is implemented.
-- [ ] Physical files and database metadata remain coordinated.
-- [ ] Relative storage paths are persisted instead of environment-specific absolute URLs.
-- [ ] Original filenames are retained safely where approved.
-- [ ] Stored filenames are generated safely.
+- [x] Approved Media model/table is implemented.
+- [x] Physical files and database metadata remain coordinated.
+- [x] Relative storage paths are persisted instead of environment-specific absolute URLs.
+- [x] Original filenames are retained safely where approved.
+- [x] Stored filenames are generated safely.
 Authorization
-- [ ] Media administration requires authentication.
-- [ ] Media routes require approved authorization.
-- [ ] Unauthorized authenticated users receive 403.
-- [ ] Super Admin access continues through centralized Gate bypass.
-- [ ] Media sidebar visibility follows authorization.
+- [x] Media administration requires authentication.
+- [x] Media routes require approved authorization.
+- [x] Unauthorized authenticated users receive 403.
+- [x] Super Admin access continues through centralized Gate bypass.
+- [x] Media sidebar visibility follows authorization.
 Upload
-- [ ] Approved media types upload successfully.
-- [ ] Unsupported media types are rejected.
-- [ ] File-size limits are enforced.
-- [ ] Server-side file validation is used.
-- [ ] User-controlled storage paths are not accepted.
-- [ ] Client-provided filenames are not blindly used as physical storage filenames.
-- [ ] Failed uploads do not create invalid database records.
+- [x] Approved media types upload successfully.
+- [x] Unsupported media types are rejected.
+- [x] File-size limits are enforced.
+- [x] Server-side file validation is used.
+- [x] User-controlled storage paths are not accepted.
+- [x] Client-provided filenames are not blindly used as physical storage filenames.
+- [x] Failed uploads do not create invalid database records.
 Security
-- [ ] Executable/script uploads are prohibited.
-- [ ] SVG is prohibited unless explicitly approved.
-- [ ] Original filenames are escaped when displayed.
-- [ ] No arbitrary HTML/script execution is introduced.
-- [ ] CSRF protection applies to mutating actions.
-- [ ] No infrastructure secrets are exposed.
-- [ ] Public media access does not bypass CMS upload/delete authorization.
+- [x] Executable/script uploads are prohibited.
+- [x] SVG is prohibited unless explicitly approved.
+- [x] Original filenames are escaped when displayed.
+- [x] No arbitrary HTML/script execution is introduced.
+- [x] CSRF protection applies to mutating actions.
+- [x] No infrastructure secrets are exposed.
+- [x] Public media access does not bypass CMS upload/delete authorization.
 Browsing
-- [ ] Authorized users can browse uploaded media.
-- [ ] Media previews are usable.
-- [ ] Non-image files have an appropriate representation if supported.
-- [ ] Pagination exists when needed.
-- [ ] Approved search/filter behavior works.
-- [ ] UI remains responsive.
+- [x] Authorized users can browse uploaded media.
+- [x] Media previews are usable.
+- [x] Non-image files have an appropriate representation if supported.
+- [x] Pagination exists when needed.
+- [x] Approved search/filter behavior works.
+- [x] UI remains responsive.
 Deletion
-- [ ] Authorized users can delete media according to the approved strategy.
-- [ ] Deletion has clear confirmation.
-- [ ] Database and physical-file cleanup are coordinated.
-- [ ] Unauthorized users cannot delete media.
-- [ ] Future reference-safety considerations are documented.
+- [x] Authorized users can delete media according to the approved strategy.
+- [x] Deletion has clear confirmation.
+- [x] Database and physical-file cleanup are coordinated.
+- [x] Unauthorized users cannot delete media.
+- [x] Future reference-safety considerations are documented.
 Architecture
-- [ ] Laravel filesystem abstraction is used.
-- [ ] No absolute environment-specific storage URLs are persisted.
-- [ ] No unnecessary repository layer is introduced.
-- [ ] No generic DAM platform is introduced.
-- [ ] No media package is installed without approval.
-- [ ] No speculative future-module foreign keys are added.
-- [ ] F006 remains business-neutral.
+- [x] Laravel filesystem abstraction is used.
+- [x] No absolute environment-specific storage URLs are persisted.
+- [x] No unnecessary repository layer is introduced.
+- [x] No generic DAM platform is introduced.
+- [x] No media package is installed without approval.
+- [x] No speculative future-module foreign keys are added.
+- [x] F006 remains business-neutral.
 Scope Boundaries
-- [ ] No advanced image editor is introduced.
-- [ ] No automatic video/audio transcoding is introduced.
-- [ ] No private document-management system is introduced.
-- [ ] No AI media functionality is introduced.
-- [ ] No F007+ content modules are implemented prematurely.
-- [ ] Website Settings logo/favicon integration occurs only if explicitly approved.
+- [x] No advanced image editor is introduced.
+- [x] No automatic video/audio transcoding is introduced.
+- [x] No private document-management system is introduced.
+- [x] No AI media functionality is introduced.
+- [x] No F007+ content modules are implemented prematurely.
+- [x] Website Settings logo/favicon integration occurs only if explicitly approved.
 Quality
-- [ ] Focused F006 tests pass.
-- [ ] Storage tests use safe/fake test storage where appropriate.
-- [ ] F006-modified PHP files pass Pint.
-- [ ] Frontend build passes when applicable.
-- [ ] Manual UI review passes.
-- [ ] Full regression suite passes during final validation.
-- [ ] Final diff remains scoped to F006.
+- [x] Focused F006 tests pass.
+- [x] Storage tests use safe/fake test storage where appropriate.
+- [x] F006-modified PHP files pass Pint.
+- [x] Frontend build passes when applicable.
+- [x] Manual UI review passes.
+- [x] Full regression suite passes during final validation.
+- [x] Final diff remains scoped to F006.
 90. Required Workflow
 F006 must follow:
 Feature Specification

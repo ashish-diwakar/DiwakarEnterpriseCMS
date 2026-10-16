@@ -3,12 +3,19 @@
 declare(strict_types=1);
 
 use App\Http\Controllers\Admin\DashboardController;
+use App\Http\Controllers\Admin\MediaController;
 use App\Http\Controllers\Admin\RolePermissionController;
 use App\Http\Controllers\Admin\UserRoleController;
 use App\Http\Controllers\Admin\WebsiteSettingsController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware(['auth', 'can:admin.access'])->group(function (): void {
+    Route::middleware('can:media.manage')->group(function (): void {
+        Route::get('/media', [MediaController::class, 'index'])->name('media.index');
+        Route::post('/media', [MediaController::class, 'store'])->name('media.store');
+        Route::patch('/media/{media}', [MediaController::class, 'update'])->name('media.update');
+        Route::delete('/media/{media}', [MediaController::class, 'destroy'])->name('media.destroy');
+    });
     Route::redirect('/', '/admin/dashboard');
 
     Route::get('/dashboard', DashboardController::class)

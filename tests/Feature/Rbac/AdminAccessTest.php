@@ -6,6 +6,7 @@ use App\Models\User;
 use App\Support\Rbac;
 use Database\Seeders\RolesAndPermissionsSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
 use Tests\TestCase;
 
@@ -67,12 +68,14 @@ class AdminAccessTest extends TestCase
         $this->assertFalse($admin->can(Rbac::PERMISSION_USERS_ASSIGN_ROLES));
         $this->assertFalse($admin->can(Rbac::PERMISSION_ROLES_MANAGE_PERMISSIONS));
         $this->assertFalse($admin->can(Rbac::PERMISSION_SETTINGS_MANAGE));
+        $this->assertFalse($admin->can(Rbac::PERMISSION_MEDIA_MANAGE));
     }
 
     public function test_roles_and_permissions_seeder_preserves_custom_admin_permissions(): void
     {
         $adminRole = Role::findByName(Rbac::ROLE_ADMIN, Rbac::GUARD_WEB);
         $adminRole->givePermissionTo(Rbac::PERMISSION_USERS_ASSIGN_ROLES);
+        $adminRole->givePermissionTo(Rbac::PERMISSION_MEDIA_MANAGE);
 
         $this->seed(RolesAndPermissionsSeeder::class);
 
@@ -83,5 +86,7 @@ class AdminAccessTest extends TestCase
         $this->assertTrue($adminRole->hasPermissionTo(Rbac::PERMISSION_ROLES_VIEW));
         $this->assertTrue($adminRole->hasPermissionTo(Rbac::PERMISSION_USERS_ASSIGN_ROLES));
         $this->assertFalse($adminRole->hasPermissionTo(Rbac::PERMISSION_SETTINGS_MANAGE));
+        $this->assertTrue($adminRole->hasPermissionTo(Rbac::PERMISSION_MEDIA_MANAGE));
+        $this->assertSame(1, Permission::where('name', Rbac::PERMISSION_MEDIA_MANAGE)->where('guard_name', 'web')->count());
     }
 }
