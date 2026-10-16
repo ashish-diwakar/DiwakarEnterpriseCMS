@@ -1,6 +1,37 @@
 F007 — Page Management
 Status:
-Planned
+Complete
+
+Final user approval — 2026-10-17
+F007 is Complete following explicit final user approval. The completion record below supersedes historical pending review/status entries. Documented architectural limitations, unrelated Pint findings and Composer security advisories remain unchanged. This completion step updates only this specification; no application code, database, storage, authorization or dependencies were changed and no tests, Pint or build were rerun.
+
+Delete-dialog action spacing — 2026-10-17
+- Added explicit spacing above the action divider and padding around the Cancel/Delete Page row, retaining button wrapping and separation. Confirmation behavior is unchanged; user review remains pending.
+
+Stacked-list spacing correction — 2026-10-17
+- Added a 1rem gap and individual bordered card surfaces to stacked Page rows. Desktop retains the existing contiguous table. Presentation-only; status remains Ready for Review pending user review.
+
+Manual-review corrections — 2026-10-17
+- Pages index now uses one shared native dialog with existing Alpine/Tailwind, a dimmed backdrop, safe selected-title text binding and the selected existing DELETE action. Cancel is a non-submit button with initial focus; Escape cancels while idle, native modal focus containment/return applies, and confirmation disables duplicate submission. Existing CSRF/permission/deletion/redirect behavior remains authoritative.
+- Shared create/edit form has distinct field groups, spaced labels, consistent minimum 44px controls, errors directly below fields, helper-text margins and a divided/padded primary/secondary action area. Forms and dialog wrap/fit narrow viewports without introducing a framework.
+- Successful create/update now redirect to admin.pages.index with existing success messages. Validation failures return to their originating forms with old input/errors; no false success or changed slug rules.
+- Focused command: php artisan test --compact tests/Feature/Admin/PageManagementTest.php — 10 passed, 236 assertions. Covers save redirects/feedback, invalid-form context, safe shared dialog selection/cancel controls, protected deletion and retained business-rule coverage.
+- npm.cmd run build passed to compile updated UI styles for manual review. No new dependencies, schema changes, full regression, final validation or F008 work. Status remains Ready for Review; manual review is pending user confirmation.
+
+Approved implementation record — 2026-10-17
+- Implemented identity/lifecycle CRUD only: Page/pages with id, required title varchar(200), required unique slug varchar(150), required status varchar(20) default draft, and timestamps. No other fields, relationships or indexes beyond primary/unique slug.
+- PageStatus is a string-backed enum with Draft/Published. Omitted create status defaults to draft; omitted update fields remain unchanged; explicit empty/invalid required values fail validation.
+- Title is trimmed, limited to 200, rejects angle brackets and is escaped in Blade. Slugs accept human-readable letters/marks/numbers/spaces/underscores/hyphens for Str::slug normalization, reject path/URL syntax, and validate the final nonempty ASCII single segment (max 150), reserved set and uniqueness. No truncation or numeric suffixing.
+- Create derives blank/omitted slug from title server-side and offers create-only Alpine suggestions until manual editing. Update never regenerates slug from title; blank update slug fails. Shared Form Request rules are inherited by UpdatePageRequest with explicit update semantics; no model events regenerate identity.
+- Reserved slugs: admin, login, logout, register, storage, api, dashboard, profile, forgot-password, reset-password, verify-email, email, confirm-password, password, up, build.
+- Thin PageController uses validated Eloquent writes. A confirmed unique-slug database race yields a slug validation error; unrelated unique/database errors are not disguised. No Actions/services/repositories or new packages.
+- Six ID-bound admin routes (index/create/store/edit/update/destroy) require auth/admin.access/pages.manage. Added pages.manage only to the registry; existing additive seeder and Admin defaults unchanged. Super Admin uses the existing Gate bypass. Pages navigation follows Media Library and permission visibility.
+- Index searches title OR slug in a grouped parameterized query, filters All/Draft/Published, orders updated_at DESC/id DESC and paginates 20 with retained filters. Responsive desktop table/mobile list, shared labeled identity forms, semantic badges, styled actions, CSRF and explicit delete confirmation follow the admin shell.
+- Permanent deletion only. Later consuming features must add reference protection before deletion of referenced Pages is permitted. No restore/soft-delete system, content/body, media/picker, menus, SEO, public rendering/catch-all, homepage, hierarchy, template, default pages, scheduling or F008 implementation.
+- Reviewed and applied 2026_10_17_000001_create_pages_table locally; only creates pages. Existing additive RolesAndPermissionsSeeder run to register pages.manage for review; no Page records seeded.
+- Focused command: php artisan test --compact tests/Feature/Admin/PageManagementTest.php tests/Feature/Rbac — 25 passed, 256 assertions. Tests use the isolated database and cover authorization/navigation, creation/defaults, normalization/security, uniqueness/race, update stability, filtering/pagination, deletion, escaping, absence of public routing and RBAC baseline/custom grants.
+- Scoped Pint formatting command passed for F007 PHP files. npm.cmd run build compiled the create-form enhancement/styles successfully for review. No full regression or final validation performed.
+- Known unrelated Pint findings and Composer advisories left untouched. Manual UI review is pending user confirmation. Feature is not Complete.
 1. Objective
 Enable authorized administrators to create and manage reusable website page records without hard-coding pages into frontend templates.
 F007 establishes the page identity, lifecycle, routing metadata, and administration foundation required by later content features.
@@ -840,146 +871,149 @@ Before implementation, user should approve:
 - Media integration deferment
 - any new dependency
 82. Implementation Plan
-Status:
-Pending Analysis
-Expected implementation plan size:
-approximately 6–8 meaningful steps.
-Do not implement until explicitly approved.
+Approved and implemented, including separately approved UI corrections: styled deletion dialog, shared-form spacing, list redirects, stacked-card spacing and dialog action spacing.
 83. Implementation Record
 Files Created
-Pending.
+- app/Enums/PageStatus.php
+- app/Models/Page.php
+- app/Http/Controllers/Admin/PageController.php
+- app/Http/Requests/Admin/StorePageRequest.php
+- app/Http/Requests/Admin/UpdatePageRequest.php
+- database/migrations/2026_10_17_000001_create_pages_table.php
+- resources/views/admin/pages/index.blade.php
+- resources/views/admin/pages/create.blade.php
+- resources/views/admin/pages/edit.blade.php
+- resources/views/admin/pages/partials/form.blade.php
+- resources/js/page-slug.js
+- tests/Feature/Admin/PageManagementTest.php
 Files Modified
-Pending.
+- app/Support/Rbac.php
+- routes/admin.php
+- resources/views/admin/layouts/partials/sidebar.blade.php
+- resources/js/app.js
+- tests/Feature/Rbac/AdminAccessTest.php
+- docs/features/F007_PAGE_MANAGEMENT.md
 Files Removed
-Pending.
-Migration
-Pending.
-Model
-Pending.
+None.
+Migration / Model
+One pages migration, applied during implementation. Page/pages contains only id, required title varchar(200), required unique slug varchar(150), required status varchar(20) default draft, created_at and updated_at. Only primary and unique-slug indexes; no foreign keys or content/media/menu/SEO/homepage/hierarchy/template fields. Fillable attributes limited to title/slug/status; PageStatus enum casting; no hidden slug-regeneration events.
 Permission
-Pending.
+pages.manage only; ordinary users also require admin.access. Admin baseline and existing additive seeder implementation unchanged; customized grants preserved; Super Admin uses centralized Gate::before.
 Dependency Changes
-Expected:
-None
-Final:
-Pending.
+None. Composer/npm manifests and lockfiles unchanged.
 Tests Added / Updated
-Pending.
-84. Validation Record
+PageManagementTest covers all six protected routes, navigation, create/default/status behavior, title/slug security/normalization/reservations/uniqueness/race handling, update stability, browsing/pagination, deletion/escaping/dialog markup and successful/invalid save redirects. AdminAccessTest extends baseline/idempotency/custom-grant checks for pages.manage.
+84. Validation Record — 2026-10-17
+Full Regression Suite
+php artisan test — 102 passed, 795 assertions; no failures.
 Focused Tests
-Pending.
-Regression Suite
-Pending.
+php artisan test --compact tests/Feature/Admin/PageManagementTest.php tests/Feature/Rbac — 26 passed, 283 assertions; no failures.
 Laravel Pint
-Pending.
+Project-wide .\vendor\bin\pint.bat --test reports only pre-existing app/View/Components/FrontendLayout.php and routes/frontend.php findings. Explicit F007-scoped --test passes all 10 created/modified PHP files. Unrelated files left unchanged.
 Frontend Build
-Pending.
-Migration Review
-Pending.
-Authorization Review
-Pending.
-Slug / Validation Review
-Pending.
+npm.cmd run build — passed, including page-slug.js. Generated public/build output remains ignored/local, not part of the feature change set.
+Migration / Schema Review
+Passed. Source and read-only local schema inspection confirm exactly the six approved columns, nullable normal timestamps, required title/slug/status lengths, draft default, unique slug and primary key only, no foreign keys. Rollback definition reviewed; no rollback/reset/destructive command executed during validation. No local Page records edited for validation.
+Slug / Status Review
+Passed. Server normalization is authoritative; omitted/blank create slug derives from title, while unsafe explicit path/URL syntax is rejected before transformation. Final ASCII single-segment max 150, no truncation/suffixing. All 16 approved reserved slugs centralized and checked after normalization. Current model excluded safely from unique validation; genuine unique collision confirmed before friendly slug feedback, unrelated exceptions rethrown. Title-only/status-only updates preserve slug; explicitly blank update slug fails. Draft/Published only; create default Draft, omitted update status unchanged, invalid values rejected. No published_at/scheduling.
+Authorization / Routes Review
+Passed. Exactly six ID-bound index/create/store/edit/update/destroy admin routes; each has web/auth/can:admin.access/can:pages.manage, confirmed with filtered route:list -vv. No show/public/catch-all route. Navigation follows Media Library, checks pages.manage and uses admin.pages.* active state. F003 shell and F004 dynamic dashboard application code unchanged.
+Controller / Requests / Save Review
+Passed. Controller remains thin; Form Requests enforce authorized validated fields, create defaults and update partial semantics. Success create/update redirects to admin.pages.index with approved messages; validation returns old input/errors to the form. No unrestricted request persistence or new service/repository abstraction.
+Browse / Form / Delete Review
+Passed. Grouped parameterized title OR slug search, All/Draft/Published filter, updated_at DESC/id DESC and 20-item server pagination preserve query parameters. Shared labeled identity forms retain create-only optional Alpine suggestion/manual override, spaced 44px-minimum controls, inline errors and clear actions. One shared native dialog uses escaped data/text binding, dimmed backdrop, selected existing DELETE URL, CSRF/method spoofing, autofocus Cancel, Escape/native modal focus handling and duplicate-submit prevention. Cancel does not submit. Permanent authorized deletion returns to index; missing records use 404 and deletion failures cannot report success. No soft deletes.
+Security Review
+Passed. Plain-text title validation/escaping, safe slug lexical checks and normalization, reservations/uniqueness, status enum validation, server authorization, CSRF and validated-only mass assignment retained. User titles are not interpolated into executable JavaScript; dialog uses x-text. No raw HTML rendering, new dependencies or internal exception disclosure introduced.
 Manual UI Review
-Pending.
-Final Diff Review
-Pending.
+Passed — confirmed by user
+Pages sidebar/list, desktop/mobile responsiveness, form layout/spacing, title/slug controls and suggestions, status, search/filter, index save redirects/feedback, validation, styled deletion dialog including Cancel/Escape/workflow and requested final spacing are approved by user. Manual browser tests were not repeated during final validation.
+Scope / Final Diff Review
+Passed. All 12 created and 6 modified files reviewed as F007 scope; no unrelated user work overwritten, debug code, temporary routes, secrets, unexpected package/configuration changes or generated build artifacts in the change set. Only feature documentation updated during final validation. F001–F006 behavior preserved apart from authorized RBAC extension; no F008 implementation or specification created.
 85. Known Limitations
-Expected initial F007 limitations may include:
-- no page body/content until F008
-- no menu assignment until F009
-- no SEO metadata until F010
-- no hierarchy
-- no homepage configuration
-- no templates
-- no media picker
-- no revisions/version history
-- no scheduled publishing
-- no public dynamic rendering if explicitly deferred
-Final limitations:
-Pending implementation.
+- Page content remains deferred to F008; no body/editor/page builder.
+- Menu assignment remains deferred to F009 and SEO metadata to F010.
+- Public dynamic rendering remains deferred; Published indicates future rendering eligibility only.
+- Future consuming modules must implement reference/deletion safeguards before referenced Pages can safely be deleted.
+- No homepage configuration, hierarchy, templates, revisions, scheduling, activity logging or media picker/featured image.
+- Slug edits do not create redirects.
+- Known unrelated Pint findings and previously documented Composer advisories remain outside F007.
 86. Completion Record
-Implementation:
-Pending
-Acceptance Criteria:
-Pending
-Focused Testing:
-Pending
-User Code Review:
-Pending
-Manual UI Review:
-Pending
-Final Validation:
-Pending
-Final User Approval:
-Pending
-Feature Status:
-Planned
+Implementation: Complete
+Acceptance Criteria: 54/54 satisfied
+Focused Testing: Passed — 26 tests, 283 assertions
+Full Regression: Passed — 102 tests, 795 assertions
+User Code/UI Review: Approved
+Manual UI Review: Passed — confirmed by user
+Final Validation: Passed
+Final User Approval: Approved
+F007-scoped Pint: Passed
+Frontend Build: Passed
+Feature Status: Complete
 87. Acceptance Criteria
 Persistence
-- [ ] Approved Page model/table is implemented.
-- [ ] Only approved Page identity/lifecycle fields exist.
-- [ ] Slug uniqueness is enforced appropriately.
-- [ ] No speculative Page Sections/content storage is introduced.
-- [ ] No speculative media/menu/SEO relationships are introduced.
+- [x] Approved Page model/table is implemented.
+- [x] Only approved Page identity/lifecycle fields exist.
+- [x] Slug uniqueness is enforced appropriately.
+- [x] No speculative Page Sections/content storage is introduced.
+- [x] No speculative media/menu/SEO relationships are introduced.
 Authorization
-- [ ] Page administration requires authentication.
-- [ ] Page routes require approved authorization.
-- [ ] Unauthorized authenticated users receive 403.
-- [ ] Super Admin access continues through centralized Gate bypass.
-- [ ] Pages navigation follows authorization.
+- [x] Page administration requires authentication.
+- [x] Page routes require approved authorization.
+- [x] Unauthorized authenticated users receive 403.
+- [x] Super Admin access continues through centralized Gate bypass.
+- [x] Pages navigation follows authorization.
 Create / Update
-- [ ] Authorized user can create a valid Page.
-- [ ] Authorized user can edit Page identity/lifecycle fields.
-- [ ] Slug behavior follows approved generation/stability rules.
-- [ ] Existing slug does not silently change when title changes.
-- [ ] Status accepts only approved values.
-- [ ] Only validated/approved fields persist.
+- [x] Authorized user can create a valid Page.
+- [x] Authorized user can edit Page identity/lifecycle fields.
+- [x] Slug behavior follows approved generation/stability rules.
+- [x] Existing slug does not silently change when title changes.
+- [x] Status accepts only approved values.
+- [x] Only validated/approved fields persist.
 Validation
-- [ ] Title validation is server-side.
-- [ ] Slug validation is server-side.
-- [ ] Duplicate slugs are rejected.
-- [ ] Unsafe/invalid slug values are rejected or normalized according to approved design.
-- [ ] Invalid status values are rejected.
-- [ ] Arbitrary request fields cannot mutate unapproved values.
+- [x] Title validation is server-side.
+- [x] Slug validation is server-side.
+- [x] Duplicate slugs are rejected.
+- [x] Unsafe/invalid slug values are rejected or normalized according to approved design.
+- [x] Invalid status values are rejected.
+- [x] Arbitrary request fields cannot mutate unapproved values.
 Security
-- [ ] Page titles/slugs are escaped when displayed.
-- [ ] No raw arbitrary HTML is introduced.
-- [ ] CSRF protects mutations.
-- [ ] Direct URL authorization is enforced.
-- [ ] No page-management action depends only on hidden UI controls.
+- [x] Page titles/slugs are escaped when displayed.
+- [x] No raw arbitrary HTML is introduced.
+- [x] CSRF protects mutations.
+- [x] Direct URL authorization is enforced.
+- [x] No page-management action depends only on hidden UI controls.
 Browsing
-- [ ] Authorized users can browse Page records.
-- [ ] Approved search behavior works.
-- [ ] Approved status filtering works.
-- [ ] Ordering is deterministic.
-- [ ] Server-side pagination works where approved.
-- [ ] Page index remains responsive.
+- [x] Authorized users can browse Page records.
+- [x] Approved search behavior works.
+- [x] Approved status filtering works.
+- [x] Ordering is deterministic.
+- [x] Server-side pagination works where approved.
+- [x] Page index remains responsive.
 Delete
-- [ ] Approved deletion strategy is implemented.
-- [ ] Deletion requires explicit confirmation.
-- [ ] Unauthorized deletion is denied.
-- [ ] Future relationship/reference limitations are documented.
+- [x] Approved deletion strategy is implemented.
+- [x] Deletion requires explicit confirmation.
+- [x] Unauthorized deletion is denied.
+- [x] Future relationship/reference limitations are documented.
 Architecture
-- [ ] No unnecessary repository/service layer is introduced.
-- [ ] No page-builder architecture is introduced.
-- [ ] No new package is introduced without approval.
-- [ ] F007 remains business-neutral.
-- [ ] No catch-all frontend route is introduced unless explicitly approved.
+- [x] No unnecessary repository/service layer is introduced.
+- [x] No page-builder architecture is introduced.
+- [x] No new package is introduced without approval.
+- [x] F007 remains business-neutral.
+- [x] No catch-all frontend route is introduced unless explicitly approved.
 Scope Boundaries
-- [ ] Page content remains deferred to F008.
-- [ ] Menu functionality remains deferred to F009.
-- [ ] SEO functionality remains deferred to F010.
-- [ ] Media picker/featured-image behavior is not introduced without approval.
-- [ ] No hierarchy/homepage/template system is introduced without approval.
-- [ ] No F008+ implementation is performed prematurely.
+- [x] Page content remains deferred to F008.
+- [x] Menu functionality remains deferred to F009.
+- [x] SEO functionality remains deferred to F010.
+- [x] Media picker/featured-image behavior is not introduced without approval.
+- [x] No hierarchy/homepage/template system is introduced without approval.
+- [x] No F008+ implementation is performed prematurely.
 Quality
-- [ ] Focused F007 tests pass.
-- [ ] F007-modified PHP files pass Pint.
-- [ ] Frontend build passes when applicable.
-- [ ] Manual UI review passes.
-- [ ] Full regression suite passes during final validation.
-- [ ] Final diff remains scoped to F007.
+- [x] Focused F007 tests pass.
+- [x] F007-modified PHP files pass Pint.
+- [x] Frontend build passes when applicable.
+- [x] Manual UI review passes.
+- [x] Full regression suite passes during final validation.
+- [x] Final diff remains scoped to F007.
 88. Required Workflow
 F007 must follow:
 Feature Specification

@@ -67,6 +67,14 @@
                         Media Library
                     </x-admin.sidebar-link>
                 @endcan
+
+                @can('pages.manage')
+                    <x-admin.sidebar-link :href="route('admin.pages.index')"
+                                          :active="request()->routeIs('admin.pages.*')"
+                                          x-on:click="sidebarOpen = false">
+                        Pages
+                    </x-admin.sidebar-link>
+                @endcan
             </div>
         </div>
     </nav>

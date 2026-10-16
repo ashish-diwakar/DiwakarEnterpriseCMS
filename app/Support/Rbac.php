@@ -24,6 +24,8 @@ final class Rbac
 
     public const PERMISSION_MEDIA_MANAGE = 'media.manage';
 
+    public const PERMISSION_PAGES_MANAGE = 'pages.manage';
+
     /**
      * @return list<string>
      */
@@ -37,6 +39,7 @@ final class Rbac
             self::PERMISSION_ROLES_MANAGE_PERMISSIONS,
             self::PERMISSION_SETTINGS_MANAGE,
             self::PERMISSION_MEDIA_MANAGE,
+            self::PERMISSION_PAGES_MANAGE,
         ];
     }
 
