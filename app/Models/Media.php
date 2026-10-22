@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Facades\Storage;
 
 class Media extends Model
@@ -24,5 +25,10 @@ class Media extends Model
         }
 
         return $url;
+    }
+
+    public function pageSections(): HasMany
+    {
+        return $this->hasMany(PageSection::class);
     }
 }

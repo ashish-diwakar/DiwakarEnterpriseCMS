@@ -41,6 +41,7 @@
                             <td class="block py-2 text-xs text-slate-600 md:table-cell md:px-4 md:py-4"><span class="mr-2 text-slate-500 md:hidden">Updated:</span>{{ $page->updated_at->format('d M Y, H:i') }}</td>
                             <td class="block py-2 md:table-cell md:px-4 md:py-4">
                                 <div class="flex flex-wrap items-center gap-2">
+                                    <a href="{{ route('admin.pages.sections.index', $page) }}" class="rounded-md border border-slate-300 bg-white px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50">Manage Sections</a>
                                     <a href="{{ route('admin.pages.edit', $page) }}" class="rounded-md border border-slate-300 bg-white px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-slate-500 focus:ring-offset-2">Edit<span class="sr-only"> {{ $page->title }}</span></a>
                                     <button type="button" data-page-title="{{ $page->title }}" data-delete-action="{{ route('admin.pages.destroy', $page) }}"
                                             x-on:click="deleteTitle = $el.dataset.pageTitle; deleteAction = $el.dataset.deleteAction; $refs.deleteDialog.showModal()"

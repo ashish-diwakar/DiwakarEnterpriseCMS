@@ -73,6 +73,8 @@ class MediaController extends Controller
     {
         try {
             $deleteMedia->handle($media);
+        } catch (ValidationException $exception) {
+            return redirect()->route('admin.media.index')->with('error', 'This image is used by Page Sections. Remove or replace those references before deleting it.');
         } catch (Throwable $exception) {
             report($exception);
 

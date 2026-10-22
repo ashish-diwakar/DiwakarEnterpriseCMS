@@ -5,6 +5,8 @@ declare(strict_types=1);
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\MediaController;
 use App\Http\Controllers\Admin\PageController;
+use App\Http\Controllers\Admin\PageSectionController;
+use App\Http\Controllers\Admin\PageSectionImageController;
 use App\Http\Controllers\Admin\RolePermissionController;
 use App\Http\Controllers\Admin\UserRoleController;
 use App\Http\Controllers\Admin\WebsiteSettingsController;
@@ -12,6 +14,17 @@ use Illuminate\Support\Facades\Route;
 
 Route::middleware(['auth', 'can:admin.access'])->group(function (): void {
     Route::middleware('can:pages.manage')->group(function (): void {
+        Route::prefix('/pages/{page}/sections')->name('pages.sections.')->scopeBindings()->group(function (): void {
+            Route::get('/', [PageSectionController::class, 'index'])->name('index');
+            Route::get('/create', [PageSectionController::class, 'create'])->name('create');
+            Route::post('/', [PageSectionController::class, 'store'])->name('store');
+            Route::get('/images', PageSectionImageController::class)->name('images');
+            Route::get('/{section}/edit', [PageSectionController::class, 'edit'])->name('edit');
+            Route::patch('/{section}', [PageSectionController::class, 'update'])->name('update');
+            Route::delete('/{section}', [PageSectionController::class, 'destroy'])->name('destroy');
+            Route::patch('/{section}/move', [PageSectionController::class, 'move'])->name('move');
+            Route::patch('/{section}/visibility', [PageSectionController::class, 'visibility'])->name('visibility');
+        });
         Route::get('/pages', [PageController::class, 'index'])->name('pages.index');
         Route::get('/pages/create', [PageController::class, 'create'])->name('pages.create');
         Route::post('/pages', [PageController::class, 'store'])->name('pages.store');

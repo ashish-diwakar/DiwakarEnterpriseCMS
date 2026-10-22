@@ -10,6 +10,7 @@ use App\Models\Page;
 use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
@@ -67,8 +68,19 @@ class PageController extends Controller
 
     public function destroy(Page $page): RedirectResponse
     {
-        if (! $page->delete()) {
-            throw new RuntimeException('Page deletion failed.');
+        $deleted = DB::transaction(function () use ($page): bool {
+            $owner = Page::query()->whereKey($page->id)->lockForUpdate()->firstOrFail();
+            if ($owner->sections()->exists()) {
+                return false;
+            }
+            if (! $owner->delete()) {
+                throw new RuntimeException('Page deletion failed.');
+            }
+
+            return true;
+        });
+        if (! $deleted) {
+            return redirect()->route('admin.pages.index')->with('error', 'This Page contains sections. Remove its sections before deleting the Page.');
         }
 
         return redirect()->route('admin.pages.index')->with('status', 'Page deleted successfully.');

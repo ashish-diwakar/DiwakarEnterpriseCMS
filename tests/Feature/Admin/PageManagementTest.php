@@ -2,6 +2,8 @@
 
 namespace Tests\Feature\Admin;
 
+use App\Actions\PageSections\DeletePageSection;
+use App\Actions\PageSections\StorePageSection;
 use App\Enums\PageStatus;
 use App\Models\Page;
 use App\Models\User;
@@ -200,6 +202,19 @@ class PageManagementTest extends TestCase
         } finally {
             Page::flushEventListeners();
         }
+    }
+
+    public function test_populated_page_deletion_is_blocked_including_disabled_sections(): void
+    {
+        $page = $this->page();
+        $section = app(StorePageSection::class)->handle($page, ['type' => 'text', 'heading' => 'Content', 'body' => 'Preserve content', 'is_enabled' => false]);
+        $this->actingAs($this->authorizedUser())->delete(route('admin.pages.destroy', $page))
+            ->assertSessionHas('error', 'This Page contains sections. Remove its sections before deleting the Page.');
+        $this->assertModelExists($page);
+        $this->assertModelExists($section);
+        app(DeletePageSection::class)->handle($page, $section);
+        $this->delete(route('admin.pages.destroy', $page))->assertSessionHas('status');
+        $this->assertModelMissing($page);
     }
 
     public function test_successful_saves_return_to_index_and_validation_retains_form_context(): void

@@ -2,7 +2,9 @@
 
 namespace Tests\Feature\Admin;
 
+use App\Actions\PageSections\StorePageSection;
 use App\Models\Media;
+use App\Models\Page;
 use App\Models\User;
 use App\Support\Rbac;
 use Database\Seeders\RolesAndPermissionsSeeder;
@@ -386,6 +388,24 @@ class MediaLibraryTest extends TestCase
             ->assertExactJson(['title' => null, 'display_name' => 'original.png']);
         $this->assertNull($media->fresh()->title);
         $this->actingAs(User::factory()->create())->patchJson(route('admin.media.update', $media), ['title' => 'Denied'])->assertForbidden();
+    }
+
+    public function test_referenced_media_cannot_be_deleted_even_when_section_is_disabled(): void
+    {
+        $media = $this->record();
+        Storage::disk('public')->put($media->path, 'preserve bytes');
+        $page = Page::create(['title' => 'Owner', 'slug' => 'owner']);
+        $section = app(StorePageSection::class)->handle($page, [
+            'type' => 'hero', 'heading' => 'Hero', 'media_id' => $media->id, 'image_alt' => 'Image', 'is_enabled' => false,
+        ]);
+        $this->actingAs($this->authorizedUser())->delete(route('admin.media.destroy', $media))
+            ->assertSessionHas('error', 'This image is used by Page Sections. Remove or replace those references before deleting it.');
+        $this->assertModelExists($media);
+        $this->assertSame('preserve bytes', Storage::disk('public')->get($media->path));
+        $section->delete();
+        $this->delete(route('admin.media.destroy', $media))->assertSessionHas('status');
+        $this->assertModelMissing($media);
+        Storage::disk('public')->assertMissing($media->path);
     }
 
     public function test_display_names_are_escaped_and_both_names_are_searchable_with_filters(): void

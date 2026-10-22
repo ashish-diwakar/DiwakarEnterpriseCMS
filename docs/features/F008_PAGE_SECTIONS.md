@@ -1,6 +1,6 @@
 # F008 — Page Sections
 
-**Feature Status:** `Planned`
+**Feature Status:** `Complete`
 
 ## 1. Objective
 
@@ -1498,144 +1498,165 @@ Do not implement until explicitly approved.
 
 ---
 
-## 73. Implementation Record
+## 73. Implementation Record — 2026-10-17
+
+Approved explicit-column architecture implemented, with no generic JSON/schema engine.
+
+### Schema and Types
+
+page_sections: id; required page_id (restrictive FK to pages); type varchar(20); unsigned sort_order; boolean is_enabled default true; heading varchar(200); nullable body text, media_id (restrictive FK to media), image_alt varchar(255), button_label varchar(80), button_url varchar(2048); timestamps. Composite index (page_id, sort_order, id), primary key and necessary Media FK index only. Existing F006/F007 migration history unchanged.
+
+PageSectionType: hero, text, image_text. Hero requires heading; optional body max 500, optional image with alt, paired button label/URL (80/2048). Text requires heading/body max 10,000 and rejects image/button attributes. Image with Text requires heading/body max 5,000 and an approved image/alt. All headings max 200, alt max 255. Type and owning Page remain immutable; sort order is server-managed.
+
+Plain-text validation rejects HTML-like angle brackets; output uses escaped Blade/Alpine text binding. SafeSectionUrl accepts one-slash root-relative paths and valid HTTP/HTTPS URLs, rejecting executable schemes, protocol-relative paths, credentials, control characters/backslashes and encoded-prefix bypasses. No server-side URL fetching.
+
+### Relationships, Ordering and Visibility
+
+Page::sections() orders sort_order/id; PageSection belongs to Page and optional Media; Media::pageSections() provides focused reference checks. Media is eager-loaded for section previews.
+
+Focused Actions use transactions and owning-Page row locks. Mutations recheck ownership. Creation appends from order 1; Move Up/Down has safe boundaries; ordering stays contiguous after create/move/delete and normalizes inconsistent values deterministically. Visibility uses explicit validated booleans, independent of Page publication. Hidden zero checkbox input reliably persists unchecked false; create defaults true when omitted.
+
+### Media Picker and Reference Safety
+
+Minimal single-image native dialog/Alpine picker browses existing JPEG/PNG/WebP, searches Display Name/original_name, sorts newest-first and paginates 24. Select/preview/replace supported; Hero can clear image/alt, Image with Text requires replacement. No uploading/editing/deleting/cropping/batch selection. Native focus/Escape/cancel behavior and safe text binding retained. A no-JavaScript image-ID fallback is server-validated.
+
+Picker authorization uses admin.access plus pages.manage, not media.manage. Endpoint returns only id/name/runtime URL/dimensions plus pagination metadata.
+
+Media Picker loading correction and targeted URL audit: the Blade component supplies a relative named-route endpoint, resolved against the browser's current origin. The reproduced JavaScript defect was reading this.$el.dataset.endpoint inside event-driven load(): Alpine binds $el to the invoking child control, which lacks that attribute, causing a request to /undefined. The endpoint is now captured from the wrapper during init(). The new child-control regression failed before this correction and passed afterward. Earlier claims that APP_URL mismatch or an unauthenticated separate browser tab proved the failure's cause were not established; CLI URL generation does not establish the web request origin.
+
+Read-only verification previously found six eligible image records and one Tiger_pic match; its public disk file exists and Media::url() returns its expected /storage/... URL. F006 Media URL behavior remains unchanged. The source URL audit found no fixed development origins in application endpoints: localhost/loopback occurrences in configuration are environment-overridable defaults, test origins are deliberate fixtures, and font/vendor links and SVG namespaces are legitimate external references. Named Laravel routes remain the navigation mechanism. Configure APP_URL per environment, public disk URLs through filesystem configuration, and external services through their environment settings. HTTPS proxy and hosting behavior still require deployment-specific verification. Local public Media deliberately uses the current origin; serving that local disk through a separate CDN would require a separately approved F006 change.
+
+Correction verification: php artisan test --compact tests/Feature/Admin/PageSectionImagePickerTest.php passed (2 tests, 40 assertions); node --test tests/JavaScript/page-section-image-picker.test.js passed (2 tests, no added dependency). Coverage includes relative endpoints with app.url=http://localhost, requests on the local HTTP origin and staging/production-style HTTPS origins, F006 preview URLs, search/pagination, unauthorized requests, child-triggered fetch/JSON handling, empty results and retry after failures. Scoped Pint for the changed PHP test and one frontend build passed. These are focused checks, not live staging/production verification. Manual UI review remains pending; Feature Status remains Ready for Review.
+
+Image assignment/replacement rechecks Media existence/MIME under a Media row lock in the owning-Page transaction. DeleteMedia now locks the Media row and checks all section references, including disabled sections, before physical deletion. Referenced deletion returns the approved safe feedback; unreferenced F006 deletion/cleanup behavior remains. Restrictive FK is the integrity backstop; no generic usage-tracking framework.
+
+Page deletion locks the Page row and blocks if any sections exist, including disabled ones, with approved feedback. Empty Page deletion remains unchanged. Section deletion removes only the section, renumbers siblings, and never removes Media. No cascades/soft deletes/recovery system.
+
+### Routes and UI
+
+Exactly nine nested section routes: index/create/store/images/edit/update/destroy/move/visibility under /admin/pages/{page}/sections. All retain web/auth/admin.access/pages.manage. Scoped ID bindings and transactional ownership checks reject cross-Page access with 404. No new permissions or default Admin changes.
+
+Manage Sections links added to Page index/edit only. Separate section list/create/edit screens retain Page context, type-specific fields, summaries/images, Move Up/Down, enabled state, save feedback and owning-list redirects. Create type selection is GET-based and server-rendered; editing never offers type conversion. Styled shared section deletion dialog follows F007. No section pagination/search or global Sections sidebar.
 
 ### Files Created
 
-Pending.
+- app/Enums/PageSectionType.php
+- app/Models/PageSection.php
+- app/Rules/SafeSectionUrl.php
+- app/Http/Requests/Admin/StorePageSectionRequest.php
+- app/Http/Requests/Admin/UpdatePageSectionRequest.php
+- app/Http/Controllers/Admin/PageSectionController.php
+- app/Http/Controllers/Admin/PageSectionImageController.php
+- app/Actions/PageSections/StorePageSection.php
+- app/Actions/PageSections/UpdatePageSection.php
+- app/Actions/PageSections/MovePageSection.php
+- app/Actions/PageSections/DeletePageSection.php
+- database/migrations/2026_10_17_000002_create_page_sections_table.php
+- resources/views/admin/page-sections/index.blade.php
+- resources/views/admin/page-sections/create.blade.php
+- resources/views/admin/page-sections/edit.blade.php
+- resources/views/admin/page-sections/partials/form.blade.php
+- resources/views/components/admin/media-image-picker.blade.php
+- resources/js/page-section-image-picker.js
+- tests/Feature/Admin/PageSectionsTest.php
+- tests/Feature/Admin/PageSectionImagePickerTest.php
 
 ### Files Modified
 
-Pending.
+- app/Models/Page.php
+- app/Models/Media.php
+- app/Actions/Media/DeleteMedia.php
+- app/Http/Controllers/Admin/MediaController.php
+- app/Http/Controllers/Admin/PageController.php
+- routes/admin.php
+- resources/views/admin/pages/index.blade.php
+- resources/views/admin/pages/edit.blade.php
+- resources/js/app.js
+- tests/Feature/Admin/MediaLibraryTest.php
+- tests/Feature/Admin/PageManagementTest.php
+- docs/features/F008_PAGE_SECTIONS.md
 
-### Files Removed
+Files removed: None. Dependency changes: None. No Page/Section seeds or RBAC mutations.
 
-Pending.
+## 74. Validation Record — Final Validation
 
-### Migration
+- Manual UI Review: Passed — confirmed by user, including desktop/mobile, type selection, themed Cancel/Discard dialog, focus/Escape, Media Picker/preview, ordering, visibility and deletion dialogs. Not repeated.
+- Full regression: `php artisan test` — 117 passed, 1,010 assertions, 0 failed, 0 skipped. Run once; SQLite :memory: test database and fake public storage.
+- Focused regression: `php artisan test --compact tests/Feature/Admin/PageSectionsTest.php tests/Feature/Admin/PageSectionImagePickerTest.php tests/Feature/Admin/PageManagementTest.php tests/Feature/Admin/MediaLibraryTest.php` — 44 passed, 762 assertions, 0 failed, 0 skipped.
+- JavaScript: `node --test tests/JavaScript/page-section-image-picker.test.js` — 2 passed, 0 failed/skipped. Tests cover child-triggered loading, origin resolution, search/pagination, selection/ID, preview-error reset, empty JSON, failed responses and retry. Optional clearing/required image rules also have PHP coverage; actual focus/Escape, missing-preview appearance and themed dialog interaction rely on approved manual review and view inspection, not a claimed browser automation suite.
+- Pint: `php vendor/bin/pint --test` failed only for known unrelated app/View/Components/FrontendLayout.php and routes/frontend.php. Same executable scoped to all 22 created/modified non-Blade PHP files passed. No formatting changes made.
+- Production build: `npm.cmd run build` passed once (59 modules). No package updates.
+- Schema: 2026_10_17_000002_create_page_sections_table.php matches all 13 approved fields including timestamps; restrictive Page/Media foreign keys; composite (page_id, sort_order, id) ordering index plus required PK/FK indexes. No cascade, arbitrary JSON, or migration-history edits.
+- Architecture/security: exactly hero/text/image_text; server-side type-specific limits/prohibited-field checks; immutable request type/owner; ID/order excluded from fillable; escaped Blade/Alpine text; SafeSectionUrl rejects dangerous schemes, protocol-relative URLs, credentials, backslashes/control characters and encoded-prefix bypasses without network requests. Eager-loaded Media and relational references retained.
+- Routes: route:list --path=sections -vv confirms exactly nine routes with web/auth/admin.access/pages.manage. Scoped bindings and action ownership rechecks protect all mutations; centralized Super Admin bypass and Admin baseline unchanged. No media.manage requirement for picker.
+- Ordering/visibility/deletion: transactional Page locks, deterministic ordering/renumbering, enabled default and unchecked false verified; hidden sections preserve references. Section deletion preserves Media. Empty Page/unreferenced Media deletion works; populated Page/referenced Media deletion is blocked with approved feedback.
+- URLs: picker retains relative named route and captured component endpoint; Media uses unchanged F006 runtime URLs. Local HTTP and alternate HTTPS origins are regression fixtures, not a claim of live deployment testing.
+- Final diff: F008 source, views, tests and related F006/F007 changes reviewed. Existing working-tree work preserved. Completed-module changes limited to relationships, navigation and deletion protection. No new permissions, dependencies, lockfile edits, unrelated source changes, debug routes, credentials or tracked build artifacts.
+- Acceptance criteria: 49/49 satisfied; 0 not satisfied, 0 blocked, 0 not applicable. Evidence: automated tests, security/schema review, user-confirmed UI review and the real MariaDB scenarios below.
 
-Pending.
+### MariaDB/InnoDB concurrency evidence
 
-### Models / Enums
+Server: 10.4.32-MariaDB. Isolation: REPEATABLE-READ. pages/media/page_sections use InnoDB. Existing regular CMS database dss_enterprise_cms was not used for writes. No .env changes.
 
-Pending.
+A temporary test-only PHP harness created unique isolated schemas and redirected the public disk to an isolated temporary directory. Independent PHP workers invoked real StorePageSection, DeleteMedia and PageController::destroy operations. DB query listeners paused the first worker immediately after the relevant SELECT FOR UPDATE; bounded filesystem barriers coordinated release. The coordinator verified matching blocking/requesting sessions in information_schema.INNODB_LOCK_WAITS before release, with no competing completion and file-preservation assertions. No production instrumentation was added.
 
-### Controllers / Requests
+Successful test schema: f008_validation_d8003e11da55.
 
-Pending.
+| Scenario | Independent connection IDs | Result and committed state |
+| --- | --- | --- |
+| A — creation vs Page deletion | 312 / 313 | Passed. Deletion blocked while creation held Page lock; after commit deletion returned protected feedback; Page and section remained. |
+| A reverse — Page deletion first | 314 / 315 | Passed. Creation waited, then failed with missing Page; no orphan section. |
+| B — reference vs Media deletion | 316 / 317 | Passed. Media deletion waited, then rejected the committed disabled-section reference; row, file and reference remained. |
+| C — Media deletion first | 318 / 320 | Passed. Assignment waited, then failed validation after Media deletion; no partial section/dangling reference, file removed correctly. |
+| Ordering — concurrent section creation | 321 / 322 | Passed. Second creation waited on Page lock; committed orders were [1, 2]. |
+| D — existing references | Coordinator session, sequential safeguard checks | Passed for enabled and disabled sections. Direct Page/Media deletion hit restrictive FK errors; application deletion was blocked; section deletion retained Media; empty Page/unreferenced Media deletion succeeded. |
 
-### UI
+All competing scenarios showed actual lock waits, not merely sequential checks. No unexpected deadlocks or lock timeouts occurred in the successful run; no automatic retries were needed. These controlled cases do not prove every possible contention pattern.
 
-Pending.
+An initial harness run had a test-script barrier-path typo after observing a lock wait. It was not counted as a pass; its workers/records/files were cleaned before the corrected run. Its schema f008_validation_abd2d9f988cb remains alongside the successful schema. Both schemas contain only empty application tables and nine migration-history rows each. Read-only cleanup verification confirmed zero Page/Media/Section/user/other application records and zero remaining worker connections. All disposable media/barrier files and temporary harness scripts were removed. Normal CMS data/storage was untouched by the harness; no existing database was dropped or overwritten.
 
-### Media Integration
+Final validation passed with the documented unrelated Pint exceptions. Final user approval was granted; Feature Status: Complete. The completion update is documentation-only; validation was not rerun and the two isolated validation schemas remain unchanged.
 
-Pending decision.
 
-### Page Deletion Protection
+### Historical manual review corrections — type selection and selected-image preview
 
-Pending decision.
+The pending-review statements below describe earlier checkpoints; they are superseded by the approved manual review, final validation and completion record.
 
-### Permission
+Unsaved type-change confirmation now uses a themed HTML dialog opened with showModal(), replacing window.confirm. It matches the admin deletion-dialog layout with a centered panel, backdrop, labelled heading/message, padded footer, outlined Cancel and red Discard changes buttons. Browser modal behavior provides focus containment and Escape cancellation; Cancel receives initial focus and closing restores focus to Use this type. Only Discard changes submits the existing GET type-selection form. Cancellation preserves the active form and entered content. Focused PageSectionsTest passed (11 tests, 164 assertions), scoped Pint passed, and one frontend build passed. Keyboard, Cancel/Discard and visual review remain pending user confirmation. F008 remains Ready for Review; no final validation performed.
 
-Pending decision.
+Create retains the Laravel GET-based Use this type flow. The dropdown represents a pending selection, with a visible unapplied-selection notice; the active form identifies the type that will be saved. Applying a different type prompts before discarding changed fields, Media selection changes, or restored validation input. Applying the already-active type does not reload the form with JavaScript enabled. A persistent warning also explains the content loss for users without JavaScript. Saved section types remain immutable. Image with Text renders its own approved fields and a required image-description input; existing server validation continues to require its image and description. Hero keeps optional image/clear behavior.
 
-### Dependency Changes
+Selected Media now uses a 128px square object-contain preview beside a wrapping Display Name/filename and grouped Choose/Replace/Clear controls, stacking on narrow screens. Missing previews show a neutral fallback in the same region; choosing a replacement resets the preview error. Media IDs, runtime URLs, selection validation, and storage behavior remain unchanged.
 
-Expected: `None`
-
-### Tests
-
-Pending.
-
----
-
-## 74. Validation Record
-
-### Focused Tests
-
-Pending.
-
-### Regression Suite
-
-Pending.
-
-### Scoped Pint
-
-Pending.
-
-### Frontend Build
-
-Pending.
-
-### Schema / Migration Review
-
-Pending.
-
-### Page Ownership Review
-
-Pending.
-
-### Media Reference Safety Review
-
-Pending if applicable.
-
-### Authorization Review
-
-Pending.
-
-### Content Security Review
-
-Pending.
-
-### Manual UI Review
-
-Pending.
-
-### Final Diff Review
-
-Pending.
-
----
+Focused verification: php artisan test --compact tests/Feature/Admin/PageSectionsTest.php tests/Feature/Admin/PageSectionImagePickerTest.php passed (13 tests, 198 assertions). Node picker tests passed (2 tests); scoped Pint for PageSectionsTest passed; npm.cmd run build passed. Manual review pending: apply Image with Text, cancel/confirm a type change after editing, verify validation restores the active type/content, check compact selected-image/fallback and long filenames on desktop/mobile, and confirm required Image with Text versus optional Hero behavior. Status remains Ready for Review; no final validation performed.
 
 ## 75. Known Limitations
 
-Potential F008 limitations:
-
-- only approved initial section types
-- no visual page builder
-- no arbitrary HTML/CSS/JavaScript
-- no advanced rich-text editor unless approved
-- no content revisions
-- no scheduled publication
-- no global reusable block system
-- no multilingual content
-- no complete frontend rendering
-- no theme customization
-- no SEO/Menu functionality
-- advanced Media Picker behavior deferred unless justified
-
-Final limitations must be recorded after implementation.
-
----
+- Only three approved types; plain text only, no rich text/Markdown/custom HTML/CSS/JS.
+- No frontend renderer/catch-all, page builder, drag/drop, gallery, menus, SEO, revisions, scheduling, global blocks, multilingual content, activity logging, analytics or business-specific configuration.
+- Menu Management remains deferred to F009; SEO Management remains deferred to F010.
+- Picker is single-image selection only; no asset editing/uploading/processing.
+- Existing filesystem/database deletion operations are not atomic; cleanup remains best effort if DB deletion fails after file removal. Reference locking prevents the normal assignment/deletion race but does not introduce distributed transactions.
+- Concurrency evidence covers the documented controlled scenarios; deployment-specific hosting and broader contention patterns remain environment concerns.
+- Existing unrelated Pint findings (app/View/Components/FrontendLayout.php, routes/frontend.php) and documented Composer advisories remain untouched.
 
 ## 76. Completion Record
 
-Implementation: `Pending`
+- Feature Status: Complete
+- Implementation: Complete
+- Acceptance Criteria: 49/49 satisfied
+- Focused Tests: Passed — 44 tests, 762 assertions
+- Full Regression Suite: Passed — 117 tests, 1,010 assertions
+- JavaScript Tests: Passed — 2 tests
+- F008-Scoped Pint: Passed — 22 PHP files
+- Frontend Build: Passed — 59 modules compiled
+- MariaDB/InnoDB Concurrency: Passed
+- Manual UI Review: Passed — confirmed by user
+- Final Validation: Passed
+- User Code/UI Review: Approved
+- Final User Approval: Approved
 
-Acceptance Criteria: `Pending`
-
-Focused Testing: `Pending`
-
-User Code Review: `Pending`
-
-Manual UI Review: `Pending`
-
-Final Validation: `Pending`
-
-Final User Approval: `Pending`
-
-Feature Status: `Planned`
+The approved implementation remains unchanged: PageSection with Hero, Text Content and Image with Text; explicit relational columns; immutable section types and type-specific server validation; transactional Move Up/Down ordering; Enabled/Disabled visibility; a single-image Media Picker with safe Media references; restrictive Page and Media foreign keys; referenced Media and populated Page deletion protection; scoped nested Page/Section routes; and reuse of pages.manage. The detailed validation evidence and known limitations above remain part of this completion record.
 
 ---
 
@@ -1643,81 +1664,81 @@ Feature Status: `Planned`
 
 ### Persistence and Relationships
 
-- [ ] Approved PageSection model/table is implemented.
-- [ ] Every section belongs to an existing Page.
-- [ ] Section relationships enforce ownership correctly.
-- [ ] Only approved section types may be persisted.
-- [ ] Type-specific content follows approved schema.
-- [ ] No unrestricted arbitrary section JSON/schema system exists.
+- [x] Approved PageSection model/table is implemented.
+- [x] Every section belongs to an existing Page.
+- [x] Section relationships enforce ownership correctly.
+- [x] Only approved section types may be persisted.
+- [x] Type-specific content follows approved schema.
+- [x] No unrestricted arbitrary section JSON/schema system exists.
 
 ### Authorization
 
-- [ ] Section administration requires authentication.
-- [ ] Server-side permission checks protect every operation.
-- [ ] Unauthorized authenticated users receive 403.
-- [ ] Super Admin access retains centralized Gate behavior.
-- [ ] Cross-Page section access is prevented.
+- [x] Section administration requires authentication.
+- [x] Server-side permission checks protect every operation.
+- [x] Unauthorized authenticated users receive 403.
+- [x] Super Admin access retains centralized Gate behavior.
+- [x] Cross-Page section access is prevented.
 
 ### Section CRUD
 
-- [ ] Authorized users can add approved sections.
-- [ ] Authorized users can edit approved fields.
-- [ ] Invalid content receives useful validation errors.
-- [ ] Section type-change behavior follows approved decision.
-- [ ] Deletion requires clear confirmation.
-- [ ] Deleting a section does not remove reusable Media assets.
+- [x] Authorized users can add approved sections.
+- [x] Authorized users can edit approved fields.
+- [x] Invalid content receives useful validation errors.
+- [x] Section type-change behavior follows approved decision.
+- [x] Deletion requires clear confirmation.
+- [x] Deleting a section does not remove reusable Media assets.
 
 ### Ordering and Visibility
 
-- [ ] Sections display in deterministic approved order.
-- [ ] Administrators can reorder sections.
-- [ ] Reordering cannot alter another Page's sections.
-- [ ] Visibility behavior follows approved design.
-- [ ] Section lists remain usable on desktop and mobile.
+- [x] Sections display in deterministic approved order.
+- [x] Administrators can reorder sections.
+- [x] Reordering cannot alter another Page's sections.
+- [x] Visibility behavior follows approved design.
+- [x] Section lists remain usable on desktop and mobile.
 
 ### Content Security
 
-- [ ] Content validation is server-side.
-- [ ] Disallowed section types are rejected.
-- [ ] Arbitrary request fields are not persisted.
-- [ ] Unsafe URLs are rejected.
-- [ ] Stored content is rendered safely.
-- [ ] Raw executable HTML/JavaScript is not introduced.
+- [x] Content validation is server-side.
+- [x] Disallowed section types are rejected.
+- [x] Arbitrary request fields are not persisted.
+- [x] Unsafe URLs are rejected.
+- [x] Stored content is rendered safely.
+- [x] Raw executable HTML/JavaScript is not introduced.
 
 ### Media Integration
 
 If approved:
 
-- [ ] Media references use approved reusable storage.
-- [ ] Media selection enforces appropriate file types.
-- [ ] Invalid Media references are rejected.
-- [ ] Referenced Media cannot be deleted unsafely.
-- [ ] No duplicate Media upload system is introduced.
+- [x] Media references use approved reusable storage.
+- [x] Media selection enforces appropriate file types.
+- [x] Invalid Media references are rejected.
+- [x] Referenced Media cannot be deleted unsafely.
+- [x] No duplicate Media upload system is introduced.
 
 ### Page Safety
 
-- [ ] Deleting a populated Page follows the approved policy.
-- [ ] No accidental silent loss of Page Section content occurs.
-- [ ] Completed F007 behavior remains protected by regression tests.
+- [x] Deleting a populated Page follows the approved policy.
+- [x] No accidental silent loss of Page Section content occurs.
+- [x] Completed F007 behavior remains protected by regression tests.
 
 ### Architecture
 
-- [ ] Laravel conventions are followed.
-- [ ] No speculative generic page-builder framework is introduced.
-- [ ] No unnecessary repository/service layer is introduced.
-- [ ] No package is added without approval.
-- [ ] F008 remains business-neutral.
-- [ ] Public rendering and future feature boundaries remain respected.
+- [x] Laravel conventions are followed.
+- [x] No speculative generic page-builder framework is introduced.
+- [x] No unnecessary repository/service layer is introduced.
+- [x] No package is added without approval.
+- [x] F008 remains business-neutral.
+- [x] Public rendering and future feature boundaries remain respected.
 
 ### Quality
 
-- [ ] Focused F008 tests pass.
-- [ ] Related F006/F007 regression tests pass where affected.
-- [ ] F008-modified PHP files pass Pint.
-- [ ] Frontend build passes when applicable.
-- [ ] Manual desktop/mobile UI review passes.
-- [ ] Full regression suite passes during final validation.
-- [ ] Final diff remains scoped to F008.
+- [x] Focused F008 tests pass.
+- [x] Related F006/F007 regression tests pass where affected.
+- [x] F008-modified PHP files pass Pint.
+- [x] Frontend build passes when applicable.
+- [x] Manual desktop/mobile UI review passes.
+- [x] Full regression suite passes during final validation.
+- [x] Final diff remains scoped to F008.
 
 ---
 

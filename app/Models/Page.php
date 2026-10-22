@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Enums\PageStatus;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Page extends Model
 {
@@ -20,5 +21,10 @@ class Page extends Model
     protected function casts(): array
     {
         return ['status' => PageStatus::class];
+    }
+
+    public function sections(): HasMany
+    {
+        return $this->hasMany(PageSection::class)->orderBy('sort_order')->orderBy('id');
     }
 }
