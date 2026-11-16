@@ -336,8 +336,8 @@ docs/07_FEATURE_ROADMAP.md
 The following capabilities are not current requirements.
 Do not implement them unless they are added through an approved feature.
 Multi-Site
-Do not build one CMS installation to manage multiple independent websites yet.
-The architecture should avoid unnecessary barriers to future evolution, but current implementation is single-site unless explicitly changed.
+Each CMS deployment remains single-site. One maintained source codebase may support several independent websites through separate deployments, configurations, application secrets, databases and administrative identities.
+Do not build one installation to manage multiple independent websites. Full multi-tenancy, shared tenant databases, global site_id, centralized multi-website administration and cross-site permissions remain excluded.
 Multi-Language
 Multi-language content management is not currently required.
 Do not add translation tables, locale workflows, or translation packages without approval.
@@ -387,11 +387,12 @@ without an approved product decision.
 Native Mobile Applications
 No mobile application is currently part of this product scope.
 Public API
-A general-purpose CMS API is not currently required.
-Do not build API infrastructure merely for possible future use.
+A versioned, read-only Content API for approved external website consumers is an approved future direction, not an existing capability. Its specification and implementation require separate approval; do not build API infrastructure merely for possible future use.
+Administrative API exposure is not approved. Existing authenticated administrative JSON interactions remain within their approved feature boundaries.
 Headless CMS
-This project is not currently defined as a headless CMS.
-Blade remains the approved primary presentation architecture.
+The CMS is not currently implemented as a headless system. Blade remains the existing administration presentation architecture; existing public Blade/theme commitments are preserved.
+Future content delivery may support React Router v7 Framework Mode SSR hosted on Vercel, with Laravel administration and the Content API hosted separately. Consumer integration requires its own approved scope.
+Strapi replacement, content/asset migration and production cutover are a separate future migration project requiring explicit approval. Do not assume current Laravel Media supports the React website's Cloudinary integration.
 Real-Time Features
 Do not introduce:
 - WebSockets

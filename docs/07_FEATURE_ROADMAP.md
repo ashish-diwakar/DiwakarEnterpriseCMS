@@ -48,10 +48,14 @@ Complete
 A feature may only be marked:
 Complete
 after explicit user approval.
+Completion alignment
+F001–F008 are Complete according to their approved feature completion records under docs/features/. Those records define accepted implementation scope and limitations; the original scope outlines below are not claims that every potential item was implemented.
+Historical validation does not establish that subsequent source changes have been tested. Existing security and environment remediation remains in progress and is not marked resolved by feature completion.
+
 Phase 1 — CMS Foundation
 F001 — Authentication Integration
 Status:
-Planned
+Complete
 Objective:
 Integrate Laravel Breeze authentication into the Diwakar Enterprise CMS view and administration architecture.
 Primary scope:
@@ -70,7 +74,7 @@ Dependencies:
 Laravel Breeze already installed.
 F002 — Roles, Permissions and Super Admin
 Status:
-Planned
+Complete
 Objective:
 Introduce role-based access control for CMS administration.
 Planned scope:
@@ -91,7 +95,7 @@ Dependencies:
 F001
 F003 — Admin Application Shell
 Status:
-Planned
+Complete
 Objective:
 Create the reusable CMS administrative interface structure.
 Planned scope:
@@ -110,7 +114,7 @@ F001
 F002
 F004 — Admin Dashboard
 Status:
-Planned
+Complete
 Objective:
 Create the first functional CMS administration dashboard.
 Potential scope:
@@ -126,7 +130,7 @@ F003
 Phase 2 — CMS Core Services
 F005 — Website Settings
 Status:
-Planned
+Complete
 Objective:
 Provide central administration of reusable website-level settings.
 Potential scope:
@@ -147,7 +151,7 @@ F002
 F003
 F006 — Media Library
 Status:
-Planned
+Complete
 Objective:
 Provide centralized media management for CMS content.
 Potential scope:
@@ -172,7 +176,7 @@ F002
 F003
 F007 — Page Management
 Status:
-Planned
+Complete
 Objective:
 Allow administrators to manage standard website pages.
 Potential scope:
@@ -192,7 +196,7 @@ F003
 F006 where page media is required
 F008 — Page Sections
 Status:
-Planned
+Complete
 Objective:
 Support structured reusable content sections within pages.
 Potential section concepts may include:
@@ -214,6 +218,10 @@ F006
 F009 — Menu Management
 Status:
 Planned
+Implementation:
+Not Started
+Hold:
+On Hold — resume only after explicit approval and required CMS/environment security readiness.
 Objective:
 Allow administrators to manage public website navigation.
 Potential scope:
@@ -515,8 +523,8 @@ Potential future capabilities include:
 - e-commerce
 - subscriptions
 - advanced workflow system
-- public API
-- headless CMS
+- public API (read-only Content API direction below; not yet scheduled or implemented)
+- headless CMS (future content delivery only; administrative API exposure is not approved)
 - AI content generation
 - AI SEO generation
 - chatbot
@@ -525,7 +533,21 @@ Potential future capabilities include:
 - external CDN
 - cloud storage
 - complex analytics
-Their existence in this section does not imply future approval.
+Their existence in this section does not authorize implementation. The limited read-only Content API direction below is approved for planning; its specification, scheduling and implementation still require separate approval. Multi-site deployment reuse does not authorize multi-tenancy or centralized multi-website administration.
+
+Future Content Delivery Sequence
+This approved architectural direction is not implementation authorization and does not renumber, remove or repurpose existing features:
+
+1. Complete required CMS and environment security remediation; track the separately managed legacy Dewatering India website work separately.
+2. Resume F009 Menu Management only after explicit approval.
+3. Implement F010 SEO Management and relevant content modules through their normal approval stages. Preserve F011 Services, F012 Projects / Portfolio and F013 Blog.
+4. Prepare a separately approved, versioned, read-only Content API specification against the actual required content models.
+5. Implement the approved API incrementally.
+6. Integrate the React Router v7 Framework Mode SSR frontend hosted on Vercel, with Laravel administration and APIs hosted separately.
+7. Validate and separately approve Strapi migration and production cutover, preserving public URLs and SEO behavior.
+
+No API feature ID is assigned at this stage. Existing theme milestones and F022 production security hardening, F023 optimization and F024 deployment preparation remain intact. This sequence does not supersede their requirements or authorize administrative API exposure, infrastructure changes, consumer changes or migration/cutover.
+
 5. Feature Dependency Rule
 A feature should not begin if a required dependency is incomplete.
 If an agent believes a dependency can safely be removed or deferred:

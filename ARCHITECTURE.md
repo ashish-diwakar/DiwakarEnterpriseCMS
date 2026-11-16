@@ -30,7 +30,7 @@ Avoid:
 - generic frameworks built inside Laravel
 - over-engineered domain layers without a clear need
 3. Primary Application Areas
-The application has two primary presentation areas.
+The application currently has two primary presentation areas.
 Administration
 CMS administration interface.
 Primary path:
@@ -47,6 +47,22 @@ Primary routes:
 routes/frontend.php
 The administration and frontend areas should remain clearly separated.
 Shared application logic may be reused where appropriate.
+
+3A. Independent Website Deployments
+One maintained Laravel CMS codebase may serve independent websites through separate single-site deployments. Each website must have separate:
+
+- deployments and environment configurations
+- application keys and secrets
+- databases and least-privilege database accounts
+- administrative identities and permission assignments
+- media storage boundaries
+- session and cache namespaces
+- logs and backups
+- release and migration approvals
+
+The CMS core remains independent of any one website. Reuse shared CMS business logic; introduce website-specific modules only through approved features, without speculative abstraction.
+This is not multi-tenancy. Shared tenant databases, global site_id, centralized multi-website administration and cross-site permissions are excluded.
+
 4. Routing Architecture
 Frontend routes belong in:
 routes/frontend.php
@@ -464,6 +480,17 @@ If an approved feature requires an API:
 - define response contracts
 - add appropriate tests
 Do not create APIs “for future use.”
+
+Future Public Content Delivery
+Blade remains the existing administrative interface. A versioned, read-only Headless Content API is an approved future direction, not an implemented capability or authorization to create endpoints now.
+Future external frontends may consume that API only through separately approved specifications and implementation stages. API controllers and explicit response serialization must remain distinct from administrative endpoints, reusing approved models and business logic.
+Before implementation, define publication rules, response contracts, media URL behavior, pagination, caching/invalidation and security controls.
+The proposed React Router v7 Framework Mode SSR frontend remains hosted on Vercel, with Laravel administration and APIs hosted separately. Server-side loaders may consume published content; browser code must not receive privileged CMS credentials or admin session cookies. Integration and Strapi replacement/cutover require separate approvals.
+Existing Media URLs may be relative to the CMS origin. External consumers need a trusted, deployment-configured Media URL strategy; do not assume Cloudinary support exists in the current Laravel Media Library.
+Public Page responses must distinguish published parents and enabled/disabled Sections. Section changes may not update the parent Page timestamp, so cache invalidation must account for child-content changes rather than relying solely on that timestamp.
+Preserve public URLs and define stable slug/redirect migration rules before consumer migration. Services, Projects and Blog may require their own approved content models rather than generic Pages.
+These directions preserve the API approval requirements above and do not replace the existing frontend/theme roadmap.
+
 47. Error Handling
 Do not silently swallow exceptions.
 Unexpected application failures should be handled using Laravel's exception and logging infrastructure.

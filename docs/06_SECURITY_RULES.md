@@ -644,6 +644,23 @@ the feature specification must define:
 - CORS
 - versioning where relevant
 Do not create unsecured endpoints merely for frontend convenience.
+
+The following are requirements for a future approved read-only Content API, not claims of implemented controls:
+
+- Use explicit public response-field allowlists; never serialize complete models or relationship graphs by default.
+- Expose only published Pages and enabled child content of those published Pages. Drafts, user records, permissions, secrets and private settings must not be exposed through public responses.
+- Permit anonymous access only to explicitly approved public content. Preview access requires a separately approved authorization design.
+- Keep administrative operations outside the public API and retain their authentication, authorization and CSRF protections.
+- Validate filters/sorts, bound queries and page sizes, and define pagination and rate limiting.
+- Define safe Media URL behavior for separate consumers using trusted deployment/storage configuration; never derive trusted origins from arbitrary user input or persist environment-specific absolute URLs as Media identity.
+- Define cache invalidation for publication/visibility changes and child-content edits, with publication-state and authorization isolation. A parent Page timestamp alone may not represent Section changes.
+- Treat CORS as a browser access policy, not authentication or authorization. Do not broaden it for server-side loaders alone.
+- SSR consumers must not expose privileged CMS credentials or admin session cookies in browser bundles.
+- Independent deployments must isolate secrets, databases and database privileges, sessions, media and backups.
+
+Publicly stored Media files do not automatically become private when a referencing Page is a draft. Any private-media requirement needs a separate approved design.
+Existing XSS, upload, HTTPS, secure-cookie, least-privilege, dependency, logging and backup requirements remain applicable. These additions do not resolve or supersede any outstanding security or environment remediation finding.
+
 88. CORS
 Do not broaden CORS configuration without a concrete requirement.
 Avoid permissive production settings such as unrestricted origins unless explicitly justified.
