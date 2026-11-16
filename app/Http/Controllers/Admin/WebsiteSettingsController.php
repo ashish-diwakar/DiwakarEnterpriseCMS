@@ -19,9 +19,7 @@ class WebsiteSettingsController extends Controller
 
     public function update(UpdateWebsiteSettingsRequest $request): RedirectResponse
     {
-        $settings = WebsiteSetting::singleton();
-        $settings->fill($request->validated());
-        $settings->save();
+        WebsiteSetting::saveSingleton($request->validated());
 
         return redirect()
             ->route('admin.settings.edit')

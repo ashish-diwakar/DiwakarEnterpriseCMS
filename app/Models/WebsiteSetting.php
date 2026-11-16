@@ -32,4 +32,23 @@ class WebsiteSetting extends Model
             'id' => self::SINGLETON_ID,
         ]);
     }
+
+    /**
+     * Persist the fixed identity without exposing primary-key mass assignment.
+     * The unique primary key serializes concurrent initialization.
+     */
+    public static function saveSingleton(array $attributes): self
+    {
+        $settings = new self;
+        $settings->fill($attributes);
+        $values = $settings->getAttributes();
+
+        self::query()->upsert(
+            [['id' => self::SINGLETON_ID, ...$values]],
+            ['id'],
+            array_keys($values),
+        );
+
+        return self::query()->findOrFail(self::SINGLETON_ID);
+    }
 }

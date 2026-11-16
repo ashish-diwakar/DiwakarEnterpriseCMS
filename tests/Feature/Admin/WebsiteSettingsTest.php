@@ -7,6 +7,7 @@ use App\Models\WebsiteSetting;
 use App\Support\Rbac;
 use Database\Seeders\RolesAndPermissionsSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
 use Spatie\Permission\Models\Role;
 use Tests\TestCase;
 
@@ -234,6 +235,40 @@ class WebsiteSettingsTest extends TestCase
         $this->assertArrayNotHasKey('app_key', $settings->getAttributes());
         $this->assertArrayNotHasKey('database_password', $settings->getAttributes());
         $this->assertArrayNotHasKey('logo_path', $settings->getAttributes());
+    }
+
+    public function test_singleton_id_is_explicit_after_auto_increment_has_advanced(): void
+    {
+        DB::table('website_settings')->insert(['id' => 500, 'site_name' => 'Preserved inconsistent row']);
+        $settings = WebsiteSetting::saveSingleton(['site_name' => 'Explicit identity', 'id' => 700]);
+        $this->assertSame(1, $settings->id);
+        $this->assertDatabaseHas('website_settings', ['id' => 500, 'site_name' => 'Preserved inconsistent row']);
+        $this->assertDatabaseMissing('website_settings', ['id' => 700]);
+        $this->assertSame('Explicit identity', WebsiteSetting::singleton()->site_name);
+    }
+
+    public function test_singleton_creation_after_rolled_back_insert(): void
+    {
+        $connection = DB::connection();
+        $connection->beginTransaction();
+        $connection->table('website_settings')->insertGetId(['site_name' => 'Rolled back']);
+        $connection->rollBack();
+        $settings = WebsiteSetting::saveSingleton(['site_name' => 'After rollback']);
+        $this->assertSame(1, $settings->id);
+        $this->assertDatabaseCount('website_settings', 1);
+        $this->assertSame('After rollback', WebsiteSetting::singleton()->site_name);
+    }
+
+    public function test_repeated_singleton_save_preserves_existing_unedited_values(): void
+    {
+        $first = WebsiteSetting::saveSingleton(['site_name' => 'Initial', 'footer_text' => 'Retain footer']);
+        $createdAt = $first->getRawOriginal('created_at');
+        $second = WebsiteSetting::saveSingleton(['site_name' => 'Updated']);
+        $this->assertSame(1, $second->id);
+        $this->assertDatabaseCount('website_settings', 1);
+        $this->assertSame('Retain footer', $second->footer_text);
+        $this->assertSame($createdAt, $second->getRawOriginal('created_at'));
+        $this->assertSame('Updated', WebsiteSetting::singleton()->site_name);
     }
 
     /**
