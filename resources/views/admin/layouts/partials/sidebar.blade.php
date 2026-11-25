@@ -75,6 +75,13 @@
                         Pages
                     </x-admin.sidebar-link>
                 @endcan
+                @can('menus.view')
+                    <x-admin.sidebar-link :href="route('admin.menus.index')"
+                                          :active="request()->routeIs('admin.menus.*')"
+                                          x-on:click="sidebarOpen = false">
+                        Menus
+                    </x-admin.sidebar-link>
+                @endcan
             </div>
         </div>
     </nav>

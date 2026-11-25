@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\MediaController;
+use App\Http\Controllers\Admin\MenuController;
+use App\Http\Controllers\Admin\MenuItemController;
 use App\Http\Controllers\Admin\PageController;
 use App\Http\Controllers\Admin\PageSectionController;
 use App\Http\Controllers\Admin\PageSectionImageController;
@@ -13,6 +15,24 @@ use App\Http\Controllers\Admin\WebsiteSettingsController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware(['auth', 'can:admin.access'])->group(function (): void {
+    Route::prefix('menus')->name('menus.')->middleware('can:menus.view')->scopeBindings()->group(function (): void {
+        Route::get('/', [MenuController::class, 'index'])->name('index');
+        Route::get('/create', [MenuController::class, 'create'])->middleware('can:menus.create')->name('create');
+        Route::post('/', [MenuController::class, 'store'])->middleware('can:menus.create')->name('store');
+        Route::get('/{menu}', [MenuController::class, 'show'])->name('show');
+        Route::get('/{menu}/edit', [MenuController::class, 'edit'])->middleware('can:menus.update')->name('edit');
+        Route::patch('/{menu}', [MenuController::class, 'update'])->middleware('can:menus.update')->name('update');
+        Route::delete('/{menu}', [MenuController::class, 'destroy'])->middleware('can:menus.delete')->name('destroy');
+        Route::middleware('can:menus.update')->group(function (): void {
+            Route::get('/{menu}/items/create', [MenuItemController::class, 'create'])->name('items.create');
+            Route::post('/{menu}/items', [MenuItemController::class, 'store'])->name('items.store');
+            Route::patch('/{menu}/items/reorder', [MenuItemController::class, 'reorder'])->name('items.reorder');
+            Route::get('/{menu}/items/{item}/edit', [MenuItemController::class, 'edit'])->name('items.edit');
+            Route::patch('/{menu}/items/{item}', [MenuItemController::class, 'update'])->name('items.update');
+            Route::delete('/{menu}/items/{item}', [MenuItemController::class, 'destroy'])->name('items.destroy');
+            Route::patch('/{menu}/items/{item}/move', [MenuItemController::class, 'move'])->name('items.move');
+        });
+    });
     Route::middleware('can:pages.manage')->group(function (): void {
         Route::prefix('/pages/{page}/sections')->name('pages.sections.')->scopeBindings()->group(function (): void {
             Route::get('/', [PageSectionController::class, 'index'])->name('index');

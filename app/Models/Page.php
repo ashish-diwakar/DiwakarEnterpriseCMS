@@ -27,4 +27,9 @@ class Page extends Model
     {
         return $this->hasMany(PageSection::class)->orderBy('sort_order')->orderBy('id');
     }
+
+    public function menuItems(): HasMany
+    {
+        return $this->hasMany(MenuItem::class);
+    }
 }

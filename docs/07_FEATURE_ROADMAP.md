@@ -49,7 +49,7 @@ A feature may only be marked:
 Complete
 after explicit user approval.
 Completion alignment
-F001–F008 are Complete according to their approved feature completion records under docs/features/. Those records define accepted implementation scope and limitations; the original scope outlines below are not claims that every potential item was implemented.
+F001–F009 are Complete according to their approved feature completion records under docs/features/. Those records define accepted implementation scope and limitations; the original scope outlines below are not claims that every potential item was implemented.
 Historical validation does not establish that subsequent source changes have been tested. Existing security and environment remediation remains in progress and is not marked resolved by feature completion.
 
 Phase 1 — CMS Foundation
@@ -217,14 +217,24 @@ F007
 F006
 F009 — Menu Management
 Status:
-Planned
+Complete — Implemented, Installed, Verified and Accepted
 Implementation:
-Not Started
-Hold:
-On Hold — resume only after explicit approval and required CMS/environment security readiness.
+Complete
+Installation / Automated Verification / Manual User Acceptance:
+Passed — final user approval granted. See docs/features/F009_MENU_MANAGEMENT.md.
+Final verification:
+Focused: 63 tests, 301 assertions. Full regression: 191 tests, 1421 assertions.
+The eight refinement tests are included in full regression, not the 63-test focused filter.
+Intentional limitations:
+Public Page rendering/routing and drag-and-drop ordering remain deferred; hierarchy is
+limited to three levels. MariaDB concurrent-write verification has not been performed.
+Content API/headless integration remains deferred; the separate sandbox-access discrepancy is unresolved.
+Proposed next development sequence:
+Public Page Rendering, then F010 — SEO Management; each requires separate authorization.
+Existing feature identifiers remain unchanged.
 Objective:
 Allow administrators to manage public website navigation.
-Potential scope:
+Implemented scope:
 - menus
 - menu items
 - hierarchy
@@ -539,7 +549,7 @@ Future Content Delivery Sequence
 This approved architectural direction is not implementation authorization and does not renumber, remove or repurpose existing features:
 
 1. Complete required CMS and environment security remediation; track the separately managed legacy Dewatering India website work separately.
-2. Resume F009 Menu Management only after explicit approval.
+2. F009 Menu Management is Complete and accepted. The proposed next assignment is Public Page Rendering, followed by F010 SEO Management, each subject to separate authorization; no feature identifiers are changed.
 3. Implement F010 SEO Management and relevant content modules through their normal approval stages. Preserve F011 Services, F012 Projects / Portfolio and F013 Blog.
 4. Prepare a separately approved, versioned, read-only Content API specification against the actual required content models.
 5. Implement the approved API incrementally.

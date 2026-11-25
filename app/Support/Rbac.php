@@ -26,6 +26,14 @@ final class Rbac
 
     public const PERMISSION_PAGES_MANAGE = 'pages.manage';
 
+    public const PERMISSION_MENUS_VIEW = 'menus.view';
+
+    public const PERMISSION_MENUS_CREATE = 'menus.create';
+
+    public const PERMISSION_MENUS_UPDATE = 'menus.update';
+
+    public const PERMISSION_MENUS_DELETE = 'menus.delete';
+
     /**
      * @return list<string>
      */
@@ -40,6 +48,10 @@ final class Rbac
             self::PERMISSION_SETTINGS_MANAGE,
             self::PERMISSION_MEDIA_MANAGE,
             self::PERMISSION_PAGES_MANAGE,
+            self::PERMISSION_MENUS_VIEW,
+            self::PERMISSION_MENUS_CREATE,
+            self::PERMISSION_MENUS_UPDATE,
+            self::PERMISSION_MENUS_DELETE,
         ];
     }
 

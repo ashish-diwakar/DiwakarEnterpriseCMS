@@ -73,6 +73,9 @@ class PageController extends Controller
             if ($owner->sections()->exists()) {
                 return false;
             }
+            if ($owner->menuItems()->exists()) {
+                throw ValidationException::withMessages(['page' => 'This Page is referenced by menu items. Remove those references before deleting the Page.']);
+            }
             if (! $owner->delete()) {
                 throw new RuntimeException('Page deletion failed.');
             }
