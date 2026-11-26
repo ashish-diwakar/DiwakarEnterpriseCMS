@@ -1,5 +1,7 @@
 <?php
 
+use App\Console\Commands\InitializeWebsiteAddresses;
+use App\Console\Commands\InitializeWebsiteContacts;
 use App\Console\Commands\ProvisionSuperAdmin;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
@@ -24,8 +26,12 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withCommands([
         ProvisionSuperAdmin::class,
+        InitializeWebsiteContacts::class,
+        InitializeWebsiteAddresses::class,
     ])
     ->withMiddleware(function (Middleware $middleware): void {
+        // Contact validation must see controls instead of silently trimming them away.
+        $middleware->trimStrings(except: ['emails.*.value', 'phones.*.value', 'addresses.*.*', 'addresses.*.emails.*.value', 'addresses.*.phones.*.value']);
         $middleware->redirectUsersTo(fn (): string => route('admin.dashboard', absolute: false));
     })
     ->withExceptions(function (Exceptions $exceptions): void {

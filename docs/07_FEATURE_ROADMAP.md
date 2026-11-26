@@ -131,6 +131,9 @@ Phase 2 — CMS Core Services
 F005 — Website Settings
 Status:
 Complete
+Consolidated contact/address enhancement:
+Complete — Installed, Verified and User Accepted.
+Multiple default website emails/phones, labeled structured business addresses and independent address-specific contacts are installed and accepted. Final verification: 81 focused tests / 445 assertions; 260 regression tests / 1,799 assertions; 23/23 user-confirmed browser checks. The original F005 completion and historical 38/38 criteria remain unchanged. See docs/features/F005_WEBSITE_SETTINGS.md, section 67, for installation evidence and retained limitations, including unverified live concurrency, manual preservation acceptance with an unresolved Website Settings fingerprint discrepancy, and a checksum-verified backup without restore testing. Public rendering, Content API and SEO integration remain deferred.
 Objective:
 Provide central administration of reusable website-level settings.
 Potential scope:

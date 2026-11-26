@@ -73,7 +73,7 @@ class WebsiteSettingsTest extends TestCase
             ->get(route('admin.settings.edit'))
             ->assertOk()
             ->assertSee('Site name')
-            ->assertSee('Public email')
+            ->assertSee('Email addresses')
             ->assertSee('Facebook URL')
             ->assertDontSee('Logo')
             ->assertDontSee('Favicon');
@@ -81,7 +81,7 @@ class WebsiteSettingsTest extends TestCase
         $this->actingAs($admin)
             ->patch(route('admin.settings.update'), $this->validPayload([
                 'site_name' => 'Example CMS',
-                'public_email' => 'hello@example.test',
+                'emails' => [['label' => 'General', 'value' => 'hello@example.test', 'is_primary' => 1, 'is_active' => 1]],
                 'facebook_url' => 'https://www.facebook.com/example',
             ]))
             ->assertRedirect(route('admin.settings.edit'))
@@ -90,9 +90,9 @@ class WebsiteSettingsTest extends TestCase
         $this->assertDatabaseHas('website_settings', [
             'id' => WebsiteSetting::SINGLETON_ID,
             'site_name' => 'Example CMS',
-            'public_email' => 'hello@example.test',
             'facebook_url' => 'https://www.facebook.com/example',
         ]);
+        $this->assertDatabaseHas('website_contacts', ['website_setting_id' => 1, 'type' => 'email', 'value' => 'hello@example.test']);
     }
 
     public function test_settings_page_handles_missing_record_without_creating_it(): void
@@ -162,9 +162,9 @@ class WebsiteSettingsTest extends TestCase
 
         $this->actingAs($admin)
             ->patch(route('admin.settings.update'), $this->validPayload([
-                'public_email' => 'not-an-email',
+                'emails' => [['value' => 'not-an-email', 'is_primary' => 1, 'is_active' => 1]],
             ]))
-            ->assertSessionHasErrors('public_email');
+            ->assertSessionHasErrors('emails.0.value');
     }
 
     public function test_invalid_social_urls_are_rejected(): void
@@ -272,18 +272,25 @@ class WebsiteSettingsTest extends TestCase
     }
 
     /**
-     * @param  array<string, string>  $overrides
-     * @return array<string, string>
+     * @param  array<string, mixed>  $overrides
+     * @return array<string, mixed>
      */
     private function validPayload(array $overrides = []): array
     {
         return array_merge([
             'site_name' => 'Example Website',
             'tagline' => 'A reusable CMS website',
-            'public_email' => 'contact@example.test',
-            'primary_phone' => '+1 555 100 2000',
-            'secondary_phone' => '+1 555 100 3000',
-            'address' => '123 Example Street',
+            'contacts_present' => 1,
+            'contacts_ready' => 1,
+            'collections_complete' => 1,
+            'emails_count' => 1,
+            'phones_count' => 2,
+            'contacts_version' => WebsiteSetting::singleton()->contacts_version ?? 0,
+            'emails' => [['label' => 'General', 'value' => 'contact@example.test', 'is_primary' => 1, 'is_active' => 1]],
+            'phones' => [
+                ['value' => '+1 555 100 2000', 'subtype' => 'mobile', 'is_primary' => 1, 'is_active' => 1],
+                ['value' => '+1 555 100 3000', 'subtype' => 'landline', 'is_primary' => 0, 'is_active' => 1],
+            ],
             'facebook_url' => 'https://www.facebook.com/example',
             'instagram_url' => 'https://www.instagram.com/example',
             'linkedin_url' => 'https://www.linkedin.com/company/example',
